@@ -22,10 +22,8 @@ int main()
     string line;
     ifstream myfile("um/all.dta");
     int c = 0;
-    cout << "starting" << endl;
     if (myfile.is_open())
     {
-        cout << "HI" << endl;
         while (getline(myfile, line))
         {
             int space1 = line.find(" ");
