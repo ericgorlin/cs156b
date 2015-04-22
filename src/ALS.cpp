@@ -69,26 +69,30 @@ void ALS::run_als()
             for (unsigned int j = 0; j < n_movies; ++j) {
                 // Find the value of w--1 if the the user rated
                 // the movie and 0 if he/she didn't
-                if (y(i,j) == 0)
+                if (y.at(i,j) == 0)
                     w = 0;
-                else
+                else {
                     w = 1;
+                }
+
 
                 sum1 += w * v.col(j) * trans(v.col(j));
                 sum2 += w * y.at(i,j) * v.col(j);
             }
 
 
-            new_u.col(i) = (iden + sum1).i() * sum2;
+            //new_u.col(i) = (iden + sum1).i() * sum2;
+            new_u.col(i) = inv(sum1.i()) * sum2;
+
         }
         std::cout << "u matrix done" << std::endl;
 
         // Go through all the columns of the matrix
         for (unsigned int j = 0; j < n_movies; ++j) {
             // First part of sum
-            arma::mat iden(latent_factors, latent_factors);
-            iden.eye();
-            iden = lambda * iden;
+            //arma::mat iden(latent_factors, latent_factors);
+            //iden.eye();
+            //iden = lambda * iden;
 
             // Second part of sum
             arma::mat sum1(latent_factors, latent_factors);
@@ -111,7 +115,8 @@ void ALS::run_als()
                 sum2 += w * y.at(i,j) * u.col(i);
             }
 
-            new_v.col(j) = (iden + sum1).i() * sum2;
+            //new_v.col(j) = (iden + sum1).i() * sum2;
+            new_v.col(j) = (sum1.i()) * sum2;
         }
         std::cout << "v matrix done" << std::endl;
 

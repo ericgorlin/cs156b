@@ -38,8 +38,8 @@ arma::sp_mat LoadData::start()
             int space3 = line.find(" ", space2 + 1);
 
             // Insert into our temporary data vectors
-            locations(0, c) = atoi(line.substr(0, space1).c_str());
-            locations(1, c) = atoi(line.substr(space1 + 1, space2).c_str());
+            locations(0, c) = atoi(line.substr(0, space1).c_str()) - 1;
+            locations(1, c) = atoi(line.substr(space1 + 1, space2).c_str()) - 1;
             ratings.push_back(atoi(line.substr(space3 + 1).c_str()));
 
             c += 1;
