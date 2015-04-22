@@ -14,6 +14,7 @@ class LoadData
         LoadData();
         virtual ~LoadData();
         static arma::sp_mat start();
+        static arma::mat probe();
 
     protected:
     private:

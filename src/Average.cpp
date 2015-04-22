@@ -42,6 +42,7 @@ Average::~Average()
     //dtor
 }
 
+/*
 int main()
 {
     Average av = Average();
@@ -49,3 +50,4 @@ int main()
     av.getMovieAverages();
     return 0;
 }
+*/

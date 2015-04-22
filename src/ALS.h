@@ -9,7 +9,7 @@ class ALS
         ALS(int lf, double lambda_val);
         virtual ~ALS();
         void run_als();
-    protected:
+        double find_error(arma::mat &u, arma::mat &v);
     private:
         int latent_factors;
         int n_users;
@@ -18,6 +18,7 @@ class ALS
         arma::mat u;
         arma::mat v;
         arma::sp_mat y;
+        arma::mat probe;
 };
 
 #endif // ALS_H
