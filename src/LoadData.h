@@ -14,7 +14,9 @@ class LoadData
         LoadData();
         virtual ~LoadData();
         static arma::sp_mat start();
-        static arma::mat probe();
+        static arma::umat loadRatingsVector();
+        static arma::umat probe();
+        static arma::sp_mat sparseFromMat(arma::umat y);
 
     protected:
     private:

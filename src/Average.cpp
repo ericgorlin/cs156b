@@ -14,26 +14,26 @@ Average::Average(arma::sp_mat m)
 arma::vec Average::getUserAverages()
 {
     arma::vec userAvg(sp_data.n_rows);
-    for (int i=0; i < sp_data.n_rows; i++)
+    for (unsigned int i=0; i < sp_data.n_rows; i++)
     {
         userAvg(i) = mean(mean(sp_data.row(i)));
     }
     // test out first few
-    std::cout << userAvg(0) << endl;
-    std::cout << userAvg(1) << endl;
+//    std::cout << userAvg(0) << endl;
+//    std::cout << userAvg(1) << endl;
     return userAvg;
 }
 
 arma::vec Average::getMovieAverages()
 {
     arma::vec movieAvg(sp_data.n_cols);
-    for (int j=0; j < sp_data.n_cols; j++)
+    for (unsigned int j=0; j < sp_data.n_cols; j++)
     {
         movieAvg(j) = mean(mean(sp_data.col(j)));
     }
     // test out
-    std::cout << movieAvg(0) << endl;
-    std::cout << movieAvg(1) << endl;
+ //   std::cout << movieAvg(0) << endl;
+ //   std::cout << movieAvg(1) << endl;
     return movieAvg;
 }
 

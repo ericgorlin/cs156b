@@ -2,11 +2,11 @@
 # Separate the data in all.dta into training, probe, and qual
 # sets.
 
-data = open('all.dta')
-index = open('all.idx')
-train = open('train.dta', 'w')
-probe = open('probe.dta', 'w')
-qual = open('qual2.dta', 'w')
+data = open('um/all.dta')
+index = open('um/all.idx')
+train = open('um/train.dta', 'w')
+probe = open('um/probe.dta', 'w')
+qual = open('um/qual2.dta', 'w')
 
 data_val = data.readline()
 index_val = index.readline().strip()

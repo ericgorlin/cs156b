@@ -164,6 +164,8 @@ double ALS::find_error(arma::mat &u, arma::mat &v) {
 int main() {
     ALS als(5, .1);
     als.run_als();
+
+
 }
 
 
