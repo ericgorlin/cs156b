@@ -12,6 +12,7 @@ class KNN
         arma::vec normalize(unsigned int user);
         virtual ~KNN();
         LoadData *getLD();
+        int getUserMean();
     protected:
     private:
         arma::umat sp_data;

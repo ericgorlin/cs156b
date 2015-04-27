@@ -3,10 +3,8 @@
 #include <typeinfo>
 KNN::KNN()
 {
-    LoadData l = LoadData();
-    std::cout << "load data object created" << std::endl;
-    sp_data = l.loadRatingsVector();
-    std::cout << "we loaded the ratings" << std::endl;
+    l = new LoadData();
+    sp_data = l->loadRatingsVector();
 }
 
 KNN::KNN(arma::umat m)
@@ -16,7 +14,7 @@ KNN::KNN(arma::umat m)
 
 KNN::~KNN()
 {
-    //dtor
+    delete l;
 }
 
 // Accessor for LoadData instance
@@ -42,14 +40,14 @@ arma::vec KNN::normalize(unsigned int user)
 int main()
 {
     KNN k = KNN();
-    LoadData *l = k.getLD();
-    std::cout << "what is goin on" << std::endl;
+    LoadData *l2 = k.getLD();
     arma::vec kn = k.normalize(1);
-    std::cout << l->getUserMean(1) << std::endl;
-    std::cout << l->getUserStddev(1) << std::endl;
-    std::cout << l->getMovieMean(1) << std::endl;
-    std::cout << l->getMovieStddev(1) << std::endl;
-    std::cout << kn << std::endl;
+    std::cout << l2->getUserMean(1) << std::endl;
+    std::cout << l2->getUserStddev(1) << std::endl;
+    std::cout << l2->getMovieMean(1) << std::endl;
+    std::cout << l2->getMovieStddev(1) << std::endl;
+    //std::cout << kn << std::endl;
     return 0;
 }
+
 

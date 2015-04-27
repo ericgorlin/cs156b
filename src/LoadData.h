@@ -33,6 +33,7 @@ class LoadData
     private:
         unordered_map<int, vector<int>> userMap;
         unordered_map<int, vector<int>> movieMap;
+        arma::umat data;
 };
 
 #endif // LOADDATA_H
