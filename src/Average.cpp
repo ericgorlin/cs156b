@@ -3,24 +3,34 @@
 
 Average::Average()
 {
-    arma::sp_mat sp_data = LoadData::start();
+    sp_data = LoadData::start();
 }
 
 Average::Average(arma::sp_mat m)
 {
-    arma::sp_mat sp_data = m;
+    sp_data = m;
 }
 
 arma::vec Average::getUserAverages()
 {
-    arma::vec userAvg(sp_data.n_rows);
-    for (unsigned int i=0; i < sp_data.n_rows; i++)
+    std::cout << "in averages now" << std::endl;
+    std::cout << sp_data.n_rows << std::endl;
+    std::cout << sp_data.n_cols << std::endl;
+    time_t start = std::time(0);
+    //arma::sp_mat userAvg = arma::mean(sp_data, 1); //userAvg(sp_data.n_rows);
+    //userAvg = arma::mean(sp_data, 1);
+    arma::vec userAvg(100);//sp_data.n_rows);
+    for (int i=0; i < 100; i++) //sp_data.n_rows; i++)
     {
-        userAvg(i) = mean(mean(sp_data.row(i)));
+        userAvg.at(i) = mean(mean(sp_data.row(i)));
     }
     // test out first few
 //    std::cout << userAvg(0) << endl;
 //    std::cout << userAvg(1) << endl;
+    std::cout << userAvg(0) << std::endl;
+    std::cout << userAvg(1) << std::endl;
+    time_t send = std::time(0);
+    std::cout << difftime(send, start) * 1000.0 << std::endl;
     return userAvg;
 }
 
@@ -47,7 +57,8 @@ int main()
 {
     Average av = Average();
     av.getUserAverages();
-    av.getMovieAverages();
+    //av.getMovieAverages();
     return 0;
 }
 */
+
