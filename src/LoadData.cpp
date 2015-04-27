@@ -128,7 +128,7 @@ arma::umat LoadData::loadRatingsVector()
 
     // Open the file
     string line;
-    ifstream myfile("um/train.dta");
+    ifstream myfile("src/um/train.dta");
     //ifstream myfile("um/all.dta");
     //ifstream myfile("um/shortall.dta");
     std::cout << "opened a file" << std::endl;
@@ -145,9 +145,6 @@ arma::umat LoadData::loadRatingsVector()
             int space3 = line.find(" ", space2 + 1);
 
             // Insert into our temporary data vectors
-            data(0, c) = atoi(line.substr(0, space1).c_str()) - 1;
-            data(1, c) = atoi(line.substr(space1 + 1, space2).c_str()) - 1;
-            data(2, c) = (atoi(line.substr(space3 + 1).c_str()));
             int userIdx = atoi(line.substr(0, space1).c_str()) - 1;
             int movieIdx = atoi(line.substr(space1 + 1, space2).c_str()) - 1;
             int rating = (atoi(line.substr(space3 + 1).c_str()));
