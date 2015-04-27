@@ -75,10 +75,11 @@ void SGD::run_sgd()
             rating = y(0, i);
             user = y(1, i) - 1;
             movie = y(2, i) - 1;
-
+            std::cout << "get estimate" << std::endl;
 //for (int z = 0; z < 5; z++) {
          //   estimate = p(userInd, :) * q(movieInd, :)' + a(userInd, :) + b(movieInd, :);
             estimate = arma::dot(u.col(user), v.col(movie));
+            std::cout << "it's definitely estimate" << std::endl;
          //   std::cout << estimate << std::endl;
 
 
@@ -91,13 +92,13 @@ void SGD::run_sgd()
             vUpdate = lr * (error * u.col(user) - lambda * v.col(movie));
 //        aUpdate = learnRate * (error - lambda * a(userInd));
 //        bUpdate = learnRate * (error - lambda * b(movieInd));
+            std::cout << "update user/movie" << std::endl;
             u.col(user) += uUpdate;
             v.col(movie) += vUpdate;
 //}
 //        q(movieInd, :) = q(movieInd, :) + qUpdate;
 //        a(userInd) = a(userInd) + aUpdate;
 //        b(movieInd) = b(movieInd) + bUpdate;
-
 
 //            if (i % 10000 == 0) {
 //                if (i != 0) {

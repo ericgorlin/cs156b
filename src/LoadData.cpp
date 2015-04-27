@@ -42,8 +42,8 @@ LoadData::LoadData()
             int userIdx = atoi(line.substr(0, space1).c_str()) - 1;
             int movieIdx = atoi(line.substr(space1 + 1, space2).c_str()) - 1;
             int rating = (atoi(line.substr(space3 + 1).c_str()));
-            vector<int> userArr;
-            vector<int> movieArr;
+            vector<double> userArr;
+            vector<double> movieArr;
 
             if (userMap.count(userIdx) > 0)
                 userArr = userMap[userIdx];
@@ -54,15 +54,15 @@ LoadData::LoadData()
                 movieArr = movieMap[movieIdx];
             else
                 movieArr = {0, 0, 0};
-            int uN = userArr[0] + 1;
-            int uM = userArr[1] + (rating - userArr[1]) / uN;
-            int uS = userArr[2] + (rating - userArr[1]) * (rating - uM);
-            vector<int> newUser = {uN, uM, uS};
+            double uN = userArr[0] + 1;
+            double uM = userArr[1] + (rating - userArr[1]) / uN;
+            double uS = userArr[2] + (rating - userArr[1]) * (rating - uM);
+            vector<double> newUser = {uN, uM, uS};
 
-            int mN = movieArr[0] + 1;
-            int mM = movieArr[1] + (rating - movieArr[1]) / mN;
-            int mS = movieArr[2] + (rating - movieArr[1]) * (rating - mM);
-            vector<int> newMovie = {mN, mM, mS};
+            double mN = movieArr[0] + 1;
+            double mM = movieArr[1] + (rating - movieArr[1]) / mN;
+            double mS = movieArr[2] + (rating - movieArr[1]) * (rating - mM);
+            vector<double> newMovie = {mN, mM, mS};
 
             data(0, c) = userIdx;
             data(1, c) = movieIdx;
@@ -186,9 +186,9 @@ arma::umat LoadData::loadRatingsVector()
     return data;
 }
 
-int LoadData::getUserMean(int userIdx)
+double LoadData::getUserMean(int userIdx)
 {
-    std::vector<int> curr = userMap[userIdx];
+    std::vector<double> curr = userMap[userIdx];
     return curr[1];
 }
 
@@ -200,7 +200,7 @@ double LoadData::getUserStddev(int userIdx)
         return sqrt(userMap[userIdx][2] / (userMap[userIdx][0] - 1));
 }
 
-int LoadData::getMovieMean(int movieIdx)
+double LoadData::getMovieMean(int movieIdx)
 {
     return movieMap[movieIdx][1];
 }

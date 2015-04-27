@@ -37,6 +37,7 @@ arma::vec KNN::normalize(unsigned int user)
     return arma::vec(671);
 }
 
+/*
 int main()
 {
     KNN k = KNN();
@@ -49,5 +50,5 @@ int main()
     //std::cout << kn << std::endl;
     return 0;
 }
-
+*/
 

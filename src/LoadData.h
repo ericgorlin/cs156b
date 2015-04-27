@@ -19,20 +19,20 @@ class LoadData
         arma::umat loadRatingsVector();
         static arma::umat probe();
         static arma::sp_mat sparseFromMat(arma::umat y);
-        int getUserMean(int userIdx);
+        double getUserMean(int userIdx);
         //KNN();
         //KNN(arma::umat m);
         arma::vec normalize(unsigned int user);
         //virtual ~KNN();
         //arma::umat getKNN();
         double getUserStddev(int userIdx);
-        int getMovieMean(int movieIdx);
+        double getMovieMean(int movieIdx);
         double getMovieStddev(int movieIdx);
 
     protected:
     private:
-        unordered_map<int, vector<int>> userMap;
-        unordered_map<int, vector<int>> movieMap;
+        unordered_map<int, vector<double>> userMap;
+        unordered_map<int, vector<double>> movieMap;
         arma::umat data;
 };
 
