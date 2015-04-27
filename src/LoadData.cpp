@@ -125,7 +125,7 @@ arma::umat LoadData::loadRatingsVector()
             int space2 = line.find(" ", space1 + 1);
             int space3 = line.find(" ", space2 + 1);
 
-            // Insert into our temporary data vectors
+            // Insert into our data vectors
             data(0, c) = atoi(line.substr(0, space1).c_str()) - 1;
             data(1, c) = atoi(line.substr(space1 + 1, space2).c_str()) - 1;
             data(2, c) = (atoi(line.substr(space3 + 1).c_str()));

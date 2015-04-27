@@ -83,16 +83,20 @@ void SGD::run_sgd()
 
 
             error = rating - estimate;
-         //   std::cout << error << std::endl << std::endl;
+            std::cout << error << std::endl;
 //        error = rating - globalAvg - estimate;
 
 
             uUpdate = lr * (error * v.col(movie) - lambda * u.col(user));
             vUpdate = lr * (error * u.col(user) - lambda * v.col(movie));
+
+            std::cout << u << std::endl << std::endl;
 //        aUpdate = learnRate * (error - lambda * a(userInd));
 //        bUpdate = learnRate * (error - lambda * b(movieInd));
             u.col(user) += uUpdate;
             v.col(movie) += vUpdate;
+
+
 //}
 //        q(movieInd, :) = q(movieInd, :) + qUpdate;
 //        a(userInd) = a(userInd) + aUpdate;
@@ -119,7 +123,7 @@ void SGD::run_sgd()
    //     std::cout << new_error << std::endl;
 
         // If there's no decrease in error, stop.
-        std::cout << "Error: " << new_error << std::endl;
+        //std::cout << "Error: " << new_error << std::endl;
         if (new_error >= old_error)
             u = prev_u;
             v = prev_v;
@@ -138,11 +142,13 @@ double SGD::find_error(arma::mat &u, arma::mat &v) {
         int user = probe(1, i) - 1;
         int movie = probe(2, i) - 1;
 
-        arma::mat pred_matrix = trans(u.col(user)) * v.col(movie);
+       // arma::mat pred_matrix = trans(u.col(user)) * v.col(movie);
  //       std::cout << u.col(user) << std::endl;
  //       std::cout << v.col(movie) << std::endl;
         //std::cout << pred_matrix << std::endl;
-        double predicted = pred_matrix(0,0);
+        //double predicted = pred_matrix(0,0);
+
+        double predicted = arma::dot(u.col(user), v.col(movie));
 
         error += pow(rating - predicted, 2);
         //std::cout << rating << " " << predicted << std::endl;
