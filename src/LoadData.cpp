@@ -25,7 +25,7 @@ LoadData::LoadData()
     // Open the file
     string line;
     //ifstream myfile("../src/um/train.dta");
-    ifstream myfile("../src/um/probe.dta");
+    ifstream myfile("../src/um/train.dta");
     //ifstream myfile("um/all.dta");
     //ifstream myfile("um/shortall.dta");
     std::cout << myfile.is_open() << std::endl;
@@ -39,8 +39,8 @@ LoadData::LoadData()
             int space3 = line.find(" ", space2 + 1);
 
             // Insert into our temporary data vectors
-            int userIdx = atoi(line.substr(0, space1).c_str()) - 1;
-            int movieIdx = atoi(line.substr(space1 + 1, space2).c_str()) - 1;
+            int userIdx = atoi(line.substr(0, space1).c_str());
+            int movieIdx = atoi(line.substr(space1 + 1, space2).c_str());
             int rating = (atoi(line.substr(space3 + 1).c_str()));
             vector<double> userArr;
             vector<double> movieArr;
@@ -151,7 +151,7 @@ arma::umat LoadData::probe()
 
     // Open the file
     string line;
-    ifstream myfile("um/probe.dta");
+    ifstream myfile("../src/um/probe.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;
@@ -182,7 +182,6 @@ arma::umat LoadData::probe()
 // Column 3: rating
 arma::umat LoadData::loadRatingsVector()
 {
-    std::cout << "map size is in load ratings " << userMap.size() << std::endl;
     return data;
 }
 

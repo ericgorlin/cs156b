@@ -9,7 +9,7 @@ class SGD
         SGD(int lf, double lambda_val, double lr);
         virtual ~SGD();
         void run_sgd();
-        double find_error(arma::mat &u, arma::mat &v);
+        double find_error(arma::mat &u, arma::mat &v, int epoch);
     private:
         int latent_factors;
         int n_users;

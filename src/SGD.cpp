@@ -2,6 +2,8 @@
 #include "LoadData.h"
 #include "Average.h"
 #include <ctime>
+#include <fstream>
+#include <iostream>
 
 SGD::SGD(int lf, double lambda_val, double lr)
 {
@@ -23,7 +25,9 @@ SGD::SGD(int lf, double lambda_val, double lr)
     //y = LoadData::loadRatingsVector();
 
     probe = LoadData::probe();
-    y = probe;
+    //y = probe;
+    LoadData l = LoadData();
+    y = l.loadRatingsVector();
     clock_t end = clock();
     double elapsed_min = double(end - begin) / CLOCKS_PER_SEC / 60;
     cout << elapsed_min << " minutes to get ratings" << endl;
@@ -72,14 +76,13 @@ void SGD::run_sgd()
         // Iterate through data points
         for (unsigned int i = 0; i < y.n_cols; i++) { //< y.n_cols
 //std::cout << "_____" << std::endl;
-            rating = y(0, i);
-            user = y(1, i) - 1;
-            movie = y(2, i) - 1;
-            std::cout << "get estimate" << std::endl;
+            rating = y(2, i);
+            user = y(0, i) - 1;
+            movie = y(1, i) - 1;
+            //std::cout << user << " " << movie << std::endl;
 //for (int z = 0; z < 5; z++) {
          //   estimate = p(userInd, :) * q(movieInd, :)' + a(userInd, :) + b(movieInd, :);
             estimate = arma::dot(u.col(user), v.col(movie));
-            std::cout << "it's definitely estimate" << std::endl;
          //   std::cout << estimate << std::endl;
 
 
@@ -92,7 +95,6 @@ void SGD::run_sgd()
             vUpdate = lr * (error * u.col(user) - lambda * v.col(movie));
 //        aUpdate = learnRate * (error - lambda * a(userInd));
 //        bUpdate = learnRate * (error - lambda * b(movieInd));
-            std::cout << "update user/movie" << std::endl;
             u.col(user) += uUpdate;
             v.col(movie) += vUpdate;
 //}
@@ -116,38 +118,58 @@ void SGD::run_sgd()
 
         // Find the error for the new values
    //     std::cout << "Epoch complete, calculating error" << std::endl;
-        new_error = find_error(u, v);
+        new_error = find_error(u, v, epoch);
    //     std::cout << new_error << std::endl;
 
         // If there's no decrease in error, stop.
         std::cout << "Error: " << new_error << std::endl;
-        if (new_error >= old_error)
+        std::cout << "Old error: " << old_error << std::endl;
+        /*
+        if (new_error >= old_error) {
             u = prev_u;
             v = prev_v;
             break;
+        }
+        */
     }
 }
 
 // Find the test error on the probe data set.
-double SGD::find_error(arma::mat &u, arma::mat &v) {
+double SGD::find_error(arma::mat &u, arma::mat &v, int epoch) {
+    ofstream myfile1;
+    std::string a = std::to_string(epoch);
+    std::string s = "sgd_results" + a + ".txt";
+    std::cout << s << std::endl;
+    myfile1.open(s);
+
     double error = 0;
     // Go through all the columns of probe
     // for (unsigned int i = 0; i < 16; ++i)
     for (unsigned int i = 0; i < 1374739; ++i)
     {
-        int rating = probe(0, i);
-        int user = probe(1, i) - 1;
-        int movie = probe(2, i) - 1;
+        int user = probe(0, i) - 1;
+        int movie = probe(1, i) - 1;
+        double rating = probe(2, i);
 
         arma::mat pred_matrix = trans(u.col(user)) * v.col(movie);
+        std::cout << u.col(user) << std::endl;
+        std::cout << v.col(movie) << std::endl;
  //       std::cout << u.col(user) << std::endl;
  //       std::cout << v.col(movie) << std::endl;
         //std::cout << pred_matrix << std::endl;
         double predicted = pred_matrix(0,0);
 
-        error += pow(rating - predicted, 2);
+        if (predicted < 0)
+            predicted = 0;
+        else if (predicted > 5)
+            predicted = 5;
+        myfile1 << predicted << "\n";
+        //std::cout << rating << " " << predicted << std::endl;
+
+        error += (rating - predicted) * (rating - predicted);
         //std::cout << rating << " " << predicted << std::endl;
     }
+    myfile1.close();
 
     // Scale by the number of reviews
     return error / 1374739;
@@ -155,7 +177,7 @@ double SGD::find_error(arma::mat &u, arma::mat &v) {
 
 }
 int main() {
-    SGD sgd(30, 0.1, 0.005); // remember to have learning rate divided by number of epochs
+    SGD sgd(30, 0.1, 0.1); // remember to have learning rate divided by number of epochs
     std::cout << "done loading\n";
     sgd.run_sgd();
 
