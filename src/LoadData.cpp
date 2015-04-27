@@ -132,6 +132,7 @@ arma::umat LoadData::loadRatingsVector()
     //ifstream myfile("um/all.dta");
     //ifstream myfile("um/shortall.dta");
     std::cout << "opened a file" << std::endl;
+    std::cout << myfile.is_open() << std::endl;
     int c = 0;
     if (myfile.is_open())
     {
