@@ -71,7 +71,9 @@ void SGD::run_sgd()
         std::cout << "New epoch" << std::endl;
 
         //learn rate is original divided by epoch
-        lr = learn_rate / epoch;
+        //lr = learn_rate / epoch;
+        // Learning rate from funny paper
+        lr = learn_rate;
         std::cout << lr << std::endl;
         shuffle(y);
 
@@ -94,15 +96,17 @@ void SGD::run_sgd()
          //   std::cout << estimate << std::endl;
 
 
-            error = lr * (rating - estimate);
+            error = (rating - estimate);
          //   std::cout << error << std::endl << std::endl;
 //        error = rating - globalAvg - estimate;
 
 
             //uUpdate = lr * (error * v.col(movie) - lambda * u.col(user));
             //vUpdate = lr * (error * u.col(user) - lambda * v.col(movie));
-            uUpdate = error * v.col(movie);
-            vUpdate = error * u.col(user);
+            arma::vec user_col = u.col(user);
+            arma::vec movie_col = v.col(movie);
+            uUpdate = lr * (error * movie_col - lambda * user_col);
+            vUpdate = lr * (error * user_col - lambda * movie_col);
 //        aUpdate = learnRate * (error - lambda * a(userInd));
 //        bUpdate = learnRate * (error - lambda * b(movieInd));
             u.col(user) += uUpdate;
@@ -135,7 +139,7 @@ void SGD::run_sgd()
         // If there's no decrease in error, stop.
         std::cout << "Error: " << new_error << std::endl;
         std::cout << "Old error: " << old_error << std::endl;
-        if (new_error >= old_error) {
+        if (new_error >= old_error && epoch > 5) {
             u = prev_u;
             v = prev_v;
             break;
@@ -208,7 +212,7 @@ void SGD::create_file(arma::mat u, arma::mat v)
     myfile1.close();
 }
 int main() {
-    SGD sgd(30, 0.1, 0.001); // remember to have learning rate divided by number of epochs
+    SGD sgd(30, 0.02, 0.001); // remember to have learning rate divided by number of epochs
     std::cout << "done loading\n";
     sgd.run_sgd();
 
