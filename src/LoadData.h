@@ -19,6 +19,7 @@ class LoadData
         arma::umat loadRatingsVector();
         static arma::umat probe();
         static arma::sp_mat sparseFromMat(arma::umat y);
+        static arma::mat qual();
         double getUserMean(int userIdx);
         //KNN();
         //KNN(arma::umat m);

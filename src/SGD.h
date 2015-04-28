@@ -23,6 +23,8 @@ class SGD
         arma::umat probe;
         arma::vec userAvg;
         arma::vec movieAvg;
+
+        void create_file(arma::mat u, arma::mat v);
 };
 
 #endif // SGD_H

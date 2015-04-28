@@ -176,6 +176,39 @@ arma::umat LoadData::probe()
 
 }
 
+// Load the data from qual.dta into a matrix
+arma::mat LoadData::qual()
+{
+    std::cout << "starting qual" << std::endl;
+    // 1374739 data points
+    arma::mat qual_mat(2, 2749898);
+    //arma::mat probe_mat(3, 16);
+
+    // Open the file
+    string line;
+    ifstream myfile("../src/um/qual.dta");
+    //ifstream myfile("um/shortprobe.dta");
+
+    int c = 0;
+    if (myfile.is_open())
+    {
+        while (getline(myfile, line))
+        {
+            int space1 = line.find(" ");
+            int space2 = line.find(" ", space1 + 1);
+
+            // Insert into the probe matrix
+            qual_mat(0, c) = atoi(line.substr(0, space1).c_str());
+            qual_mat(1, c) = atoi(line.substr(space1 + 1, space2).c_str());
+
+            c += 1;
+        }
+    }
+
+    return qual_mat;
+
+}
+
 // Load the data from the train.dta file into a matrix
 // Column 1: user
 // Column 2: movie
