@@ -1,7 +1,7 @@
 #ifndef SGD_H
 #define SGD_H
 #include <armadillo>
-
+class LoadData;
 
 class SGD
 {
@@ -17,6 +17,7 @@ class SGD
         double lambda;
         double learn_rate;
 
+        LoadData *l;
         arma::mat u;
         arma::mat v;
         arma::umat y;

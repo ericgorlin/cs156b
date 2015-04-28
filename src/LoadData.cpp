@@ -15,6 +15,8 @@ LoadData::LoadData()
 
     // Training set has 98291669 values
     data = arma::umat(3, 98291669);
+    totalMovies = 0;
+    sumRatings = 0;
     std::cout << "created a vector" << std::endl;
     //arma::umat locations = arma::umat(2, 716);
 
@@ -25,7 +27,7 @@ LoadData::LoadData()
     // Open the file
     string line;
     //ifstream myfile("../src/um/train.dta");
-    ifstream myfile("../src/um/train.dta");
+    ifstream myfile("src/um/train.dta");
     //ifstream myfile("um/all.dta");
     //ifstream myfile("um/shortall.dta");
     std::cout << myfile.is_open() << std::endl;
@@ -70,6 +72,8 @@ LoadData::LoadData()
 
             userMap[userIdx] = newUser;
             movieMap[movieIdx] = newMovie;
+            sumRatings += rating;
+            totalMovies += 1;
 
             c += 1;
 
@@ -100,7 +104,7 @@ arma::sp_mat LoadData::start()
 
     // Open the file
     string line;
-    ifstream myfile("um/train.dta");
+    ifstream myfile("src/um/train.dta");
     //ifstream myfile("um/all.dta");
     //ifstream myfile("um/shortall.dta");
     int c = 0;
@@ -151,7 +155,7 @@ arma::umat LoadData::probe()
 
     // Open the file
     string line;
-    ifstream myfile("../src/um/probe.dta");
+    ifstream myfile("src/um/probe.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;
@@ -186,7 +190,7 @@ arma::mat LoadData::qual()
 
     // Open the file
     string line;
-    ifstream myfile("../src/um/qual.dta");
+    ifstream myfile("src/um/qual.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;
@@ -244,10 +248,33 @@ double LoadData::getMovieStddev(int movieIdx)
     else
         return sqrt(movieMap[movieIdx][2] / (movieMap[movieIdx][0] - 1));
 }
+
+double LoadData::getGlobalMean()
+{
+    return sumRatings / totalMovies;
+}
+
+double LoadData::getBetterUserMean(int userIdx)
+{
+    unsigned int k = 25;
+    std::vector<double> curr = userMap[userIdx];
+    return (getGlobalMean() * k + curr[1] * curr[0]) / (k + curr[0]);
+}
+
+double LoadData::getBetterMovieMean(int movieIdx)
+{
+    unsigned int k = 25;
+    std::vector<double> curr = movieMap[movieIdx];
+    return (getGlobalMean() * k + curr[1] * curr[0]) / (k + curr[0]);
+}
+
 /*
 int main() {
     LoadData l = LoadData();
     std::cout << l.getUserMean(1) << std::endl;
+    std::cout << l.getUserStddev(1) << std::endl;
+    std::cout << l.getMovieMean(1) << std::endl;
+    std::cout << l.getMovieStddev(1) << std::endl;
 }
 */
 
