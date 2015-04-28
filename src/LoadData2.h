@@ -27,12 +27,17 @@ class LoadData2
         double getUserStddev(int userIdx);
         double getMovieMean(int movieIdx);
         double getMovieStddev(int movieIdx);
+        double getGlobalMean();
+        std::vector<double> getBetterUserMean();
+        std::vector<double> getBetterMovieMean();
 
     protected:
     private:
         unordered_map<int, vector<double>> userMap;
         unordered_map<int, vector<double>> movieMap;
         double **data;
+        int totalMovies;
+        int sumRatings;
 };
 
 #endif // LOADDATA_H

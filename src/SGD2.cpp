@@ -45,6 +45,19 @@ SGD2::SGD2(int lf, double lambda_val, double lr)
 
     clock_t begin = 0;
 
+    l = new LoadData2();
+    y = 0;
+    y = new double*[3];
+    y[0] = new double[98291669];
+    y[1] = new double[98291669];
+    y[2] = new double[98291669];
+    y = l->loadRatingsVector();
+    std::cout << "checkpoint 1" << std::endl;
+
+    global_mean = l->getGlobalMean();
+
+    user_vec = l->getBetterUserMean();
+    movie_vec = l->getBetterMovieMean();
 
     clock_t end = clock();
     double elapsed_min = double(end - begin) / CLOCKS_PER_SEC / 60;
@@ -76,13 +89,6 @@ SGD2::~SGD2()
 // wij = 1 if user i rated movie j and 0 otherwise
 void SGD2::run_sgd()
 {
-    LoadData2 *l = new LoadData2();
-    y = 0;
-    y = new double*[3];
-    y[0] = new double[98291669];
-    y[1] = new double[98291669];
-    y[2] = new double[98291669];
-    y = l->loadRatingsVector();
     cout << y[0][0] << endl;
     cout << y[1][0] << endl;
     clock_t begin = 0;
@@ -134,6 +140,8 @@ void SGD2::run_sgd()
                 //std::cout << user << std::endl;
                 estimate += u[user][j] * v[movie][j];
             }
+            // Add in regularization
+            estimate += user_vec[user] - global_mean + movie_vec[movie];
             //std::cout << "checkpoint 2" << endl;
             error = (rating - estimate);
 
@@ -154,7 +162,7 @@ void SGD2::run_sgd()
         // If there's no decrease in error, stop.
         std::cout << "Error: " << new_error << std::endl;
         std::cout << "Old error: " << old_error << std::endl;
-        if (new_error >= old_error && epoch > 5) {
+        if (new_error >= old_error + .001 && epoch > 5) {
             u = prev_u;
             v = prev_v;
             break;
@@ -190,6 +198,7 @@ double SGD2::find_error(int epoch) {
         //std::cout << u[user][1] << " u" << endl;
         for (unsigned int j = 0; j < latent_factors; ++j)
             predicted += u[user][j] * v[movie][j];
+        predicted += user_vec[user] - global_mean + movie_vec[movie];
 
         //cout << predicted << " " << rating << endl;
         // Truncate the estimate to 1 and 5
@@ -228,6 +237,7 @@ void SGD2::create_file()
         double predicted = 0;
         for (unsigned int j = 0; j < latent_factors; ++j)
             predicted += u[user][j] * v[movie][j];
+        predicted += user_vec[user] - global_mean + movie_vec[movie];
 
 
         // Truncate predictions

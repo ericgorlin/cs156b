@@ -24,6 +24,8 @@ LoadData2::LoadData2()
     //arma::umat locations = arma::umat(2, 716);
     //int n_users = 458293;
     //int n_movies = 17770;
+    totalMovies = 0;
+    sumRatings = 0;
 
     // Open the file
     string line;
@@ -45,6 +47,9 @@ LoadData2::LoadData2()
             int userIdx = atoi(line.substr(0, space1).c_str());
             int movieIdx = atoi(line.substr(space1 + 1, space2).c_str());
             int rating = (atoi(line.substr(space3 + 1).c_str()));
+
+            totalMovies += 1;
+            sumRatings += rating;
             vector<double> userArr;
             vector<double> movieArr;
 
@@ -199,6 +204,37 @@ double LoadData2::getMovieStddev(int movieIdx)
         return 0;
     else
         return sqrt(movieMap[movieIdx][2] / (movieMap[movieIdx][0] - 1));
+}
+
+double LoadData2::getGlobalMean()
+{
+    return sumRatings / totalMovies;
+}
+
+std::vector<double> LoadData2::getBetterUserMean()
+{
+    unsigned int k = 25;
+    std::vector<double> curr;
+    std::vector<double> user_vec;
+    std::cout << "better user mean beginning" << std::endl;
+    for (int i = 1; i < 458294; ++i) {
+        //curr = userMap[i];
+        user_vec.push_back((getGlobalMean() * k + userMap[i][1] * userMap[i][0]) / (k + userMap[i][0]));
+    }
+    std::cout << "better user mean end" << std::endl;
+    return user_vec;
+}
+
+std::vector<double> LoadData2::getBetterMovieMean()
+{
+    unsigned int k = 25;
+    std::vector<double> movie_vec;
+    std::vector<double> curr;
+    for (int i = 1; i < 17771; ++i) {
+        //curr = movieMap[i];
+        movie_vec.push_back((getGlobalMean() * k + movieMap[i][1] * movieMap[i][0]) / (k + movieMap[i][0]));
+    }
+    return movie_vec;
 }
 /*
 int main() {

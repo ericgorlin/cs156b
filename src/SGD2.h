@@ -1,7 +1,7 @@
 #ifndef SGD_H
 #define SGD_H
 #include <armadillo>
-
+class LoadData2;
 
 class SGD2
 {
@@ -16,7 +16,11 @@ class SGD2
         int n_movies;
         double lambda;
         double learn_rate;
+        double global_mean;
+        std::vector<double> user_vec;
+        std::vector<double> movie_vec;
 
+        LoadData2 *l;
         double **u;
         double **v;
         double **y;

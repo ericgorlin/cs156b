@@ -20,23 +20,28 @@ SGD::SGD(int lf, double lambda_val, double lr)
     // Randomly initialize all values
     u = arma::mat(latent_factors, n_users).randn();
     v = arma::mat(latent_factors, n_movies).randn();
-    //std::cout << u.col(0) << std::endl;
 
     clock_t begin = 0;
-    //y = LoadData::loadRatingsVector();
 
     probe = LoadData::probe();
-    //y = probe;
     LoadData l = LoadData();
     y = l.loadRatingsVector();
     clock_t end = clock();
     double elapsed_min = double(end - begin) / CLOCKS_PER_SEC / 60;
     cout << elapsed_min << " minutes to get ratings" << endl;
 
-    //LoadData::sparseFromMat(y);
+    // Baseline averages
+    userAvg = arma::vec(n_users).randn();
+    movieAvg = arma::vec(n_movies).randn();
+    //for (int i = 0; i < n_users; ++i)
+    //    userAvg(i) = l.getUserMean(i);
+    //for (int i = 0; i < n_movies; ++i)
+    //    movieAvg(i) = l.getMovieMean(i);
 
-    //userAvg = Average::getUserAverages();
-    //movieAvg = Average::getMovieAverages();
+    global_average = mean(y.row(2));
+    cout << "mean: " << global_average << endl;
+
+
 }
 
 SGD::~SGD()
@@ -68,7 +73,7 @@ void SGD::run_sgd()
 
     for (unsigned int epoch = 1; epoch < 100; epoch++) {
 
-        std::cout << "New epoch" << std::endl;
+        std::cout << "New epoch " << epoch << std::endl;
 
         //learn rate is original divided by epoch
         //lr = learn_rate / epoch;
@@ -79,62 +84,30 @@ void SGD::run_sgd()
 
         // Iterate through data points
         for (unsigned int i = 0; i < y.n_cols; i++) { //< y.n_cols
-        //for (unsigned int i = 0; i < 10; i++) {
-//std::cout << "_____" << std::endl;
             rating = y.at(2, i);
             user = y.at(0, i) - 1;
             movie = y.at(1, i) - 1;
-            //std::cout << user << " " << movie << std::endl;
-//for (int z = 0; z < 5; z++) {
-         //   estimate = p(userInd, :) * q(movieInd, :)' + a(userInd, :) + b(movieInd, :);
-            //estimate = arma::dot(u.col(user), v.col(movie));
             estimate_mat = trans(u.col(user)) * v.col(movie);
-            estimate = estimate_mat.at(0,0);
-
-
-            //std::cout << estimate_mat << " estimate " << std::endl;
-         //   std::cout << estimate << std::endl;
+            estimate = estimate_mat.at(0,0) + global_average + userAvg(user) + movieAvg(movie);
 
 
             error = (rating - estimate);
-         //   std::cout << error << std::endl << std::endl;
-//        error = rating - globalAvg - estimate;
-
-
-            //uUpdate = lr * (error * v.col(movie) - lambda * u.col(user));
-            //vUpdate = lr * (error * u.col(user) - lambda * v.col(movie));
             arma::vec user_col = u.col(user);
             arma::vec movie_col = v.col(movie);
             uUpdate = lr * (error * movie_col - lambda * user_col);
             vUpdate = lr * (error * user_col - lambda * movie_col);
-//        aUpdate = learnRate * (error - lambda * a(userInd));
-//        bUpdate = learnRate * (error - lambda * b(movieInd));
+
             u.col(user) += uUpdate;
             v.col(movie) += vUpdate;
-            //std::cout << u.col(user) << std::endl;
-//}
-//        q(movieInd, :) = q(movieInd, :) + qUpdate;
-//        a(userInd) = a(userInd) + aUpdate;
-//        b(movieInd) = b(movieInd) + bUpdate;
 
-//            if (i % 10000 == 0) {
-//                if (i != 0) {
-//                    clock_t end = clock();
-//                    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-//                    cout << elapsed_secs << endl;
-//                }
-//
-//                std::cout << i << std::endl;
-//                begin = clock();
+            userAvg += lr * (error - lambda * userAvg(user));
+            movieAvg += lr * (error - lambda * movieAvg(movie));
 
-//            }
 
         }
 
         // Find the error for the new values
-   //     std::cout << "Epoch complete, calculating error" << std::endl;
         new_error = find_error(u, v, epoch);
-   //     std::cout << new_error << std::endl;
 
         // If there's no decrease in error, stop.
         std::cout << "Error: " << new_error << std::endl;
@@ -162,20 +135,17 @@ double SGD::find_error(arma::mat &u, arma::mat &v, int epoch) {
         double rating = probe.at(2, i);
 
         arma::mat pred_matrix = trans(u.col(user)) * v.col(movie);
- //       std::cout << u.col(user) << std::endl;
- //       std::cout << v.col(movie) << std::endl;
-        //std::cout << pred_matrix << std::endl;
-        double predicted = pred_matrix.at(0,0);
 
+        double predicted = pred_matrix.at(0,0) + global_average + userAvg(user) + movieAvg(movie);
+
+        cout << predicted << " " << rating << endl;
         // Truncate the estimate to 1 and 5
         if (predicted < 1)
             predicted = 1;
         else if (predicted > 5)
             predicted = 5;
-        //std::cout << rating << " " << predicted << std::endl;
 
         error += (rating - predicted) * (rating - predicted);
-        //std::cout << rating << " " << predicted << std::endl;
     }
 
     // Scale by the number of reviews
@@ -201,6 +171,7 @@ void SGD::create_file(arma::mat u, arma::mat v)
         arma::mat pred_matrix = trans(u.col(user)) * v.col(movie);
         double predicted = pred_matrix.at(0,0);
 
+
         // Truncate predictions
         if (predicted < 1)
             predicted = 1;
@@ -211,6 +182,7 @@ void SGD::create_file(arma::mat u, arma::mat v)
     }
     myfile1.close();
 }
+/*
 int main() {
     SGD sgd(30, 0.02, 0.001); // remember to have learning rate divided by number of epochs
     std::cout << "done loading\n";
@@ -220,3 +192,4 @@ int main() {
 }
 
 
+*/
