@@ -136,24 +136,16 @@ void SGD2::run_sgd()
             movie = y[1][i] - 1;
             //std::cout << "checkpoint 1" << endl;
             //std::cout << user << " " << movie << " " << rating << endl;
-            estimate = 0;
+            estimate = user_vec[user] - global_mean + movie_vec[movie];
             for (unsigned int j = 0; j < latent_factors; ++j) {
-                estimate += u[user][j] + v[movie][j];
+                estimate += u[user][j] * v[movie][j];
 
-                /*
                 if (estimate > 5)
                     estimate = 5;
                 else if (estimate < 1)
                     estimate = 1;
-                */
-            }
-            // Add in regularization
-            estimate += user_vec[user] - global_mean + movie_vec[movie];
 
-            if (estimate > 5)
-                estimate = 5;
-            else if (estimate < 1)
-                estimate = 1;
+            }
             //std::cout << "checkpoint 2" << endl;
             error = (rating - estimate);
 
@@ -208,25 +200,25 @@ double SGD2::find_error(int epoch) {
         int movie = probe[1][i] - 1;
         double rating = probe[2][i];
 
-        double predicted = 0;
+        double predicted = user_vec[user] - global_mean + movie_vec[movie];
         //std::cout << u[user][1] << " u" << endl;
         for (unsigned int j = 0; j < latent_factors; ++j) {
-            predicted += u[user][j] + v[movie][j];
-            /*
+            predicted += u[user][j] * v[movie][j];
             if (predicted > 5)
                 predicted = 5;
             else if (predicted < 1)
                 predicted = 1;
-            */
         }
-        predicted += user_vec[user] - global_mean + movie_vec[movie];
+        //predicted += user_vec[user] - global_mean + movie_vec[movie];
 
         //cout << predicted << " " << rating << endl;
         // Truncate the estimate to 1 and 5
+        /*
         if (predicted < 1)
             predicted = 1;
         else if (predicted > 5)
             predicted = 5;
+        */
 
         error += (rating - predicted) * (rating - predicted);
     }
@@ -255,23 +247,15 @@ void SGD2::create_file()
         int user = qual[0][i] - 1;
         int movie = qual[1][i] - 1;
 
-        double predicted = 0;
+        double predicted = user_vec[user] - global_mean + movie_vec[movie];
         for (unsigned int j = 0; j < latent_factors; ++j) {
             predicted += u[user][j] * v[movie][j];
-            /*
             if (predicted > 5)
                 predicted = 5;
             else if (predicted < 1)
                 predicted = 1;
-            */
-
         }
-        predicted += user_vec[user] - global_mean + movie_vec[movie];
 
-        if (predicted > 5)
-            predicted = 5;
-        else if (predicted < 1)
-            predicted = 1;
 
         myfile1 << predicted << "\n";
 
@@ -279,7 +263,7 @@ void SGD2::create_file()
     myfile1.close();
 }
 int main() {
-    SGD2 sgd(33, 0.02, 0.01); // remember to have learning rate divided by number of epochs
+    SGD2 sgd(50, 0.02, 0.002); // remember to have learning rate divided by number of epochs
     std::cout << "done loading\n";
     sgd.run_sgd();
 
