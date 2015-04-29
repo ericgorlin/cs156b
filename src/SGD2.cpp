@@ -150,13 +150,10 @@ void SGD2::run_sgd()
             for (unsigned int j = 0; j < latent_factors; ++j) {
                 estimate += u[user][j] * v[movie][j];
 
-                /*
                 if (estimate > 5)
                     estimate = 5;
                 else if (estimate < 1)
                     estimate = 1;
-                */
-
             }
 
             if (estimate > 5)
@@ -227,12 +224,10 @@ double SGD2::find_error(int epoch) {
         //std::cout << u[user][1] << " u" << endl;
         for (unsigned int j = 0; j < latent_factors; ++j) {
             predicted += u[user][j] * v[movie][j];
-            /*
             if (predicted > 5)
                 predicted = 5;
             else if (predicted < 1)
                 predicted = 1;
-            */
         }
         //predicted += user_vec[user] - global_mean + movie_vec[movie];
 
@@ -278,12 +273,11 @@ void SGD2::create_file()
         double predicted = user_avg[user] + global_mean + movie_avg[movie];
         for (unsigned int j = 0; j < latent_factors; ++j) {
             predicted += u[user][j] * v[movie][j];
-            /*
+
             if (predicted > 5)
                 predicted = 5;
             else if (predicted < 1)
                 predicted = 1;
-                */
         }
 
         if (predicted > 5)
@@ -298,7 +292,7 @@ void SGD2::create_file()
     myfile1.close();
 }
 int main() {
-    SGD2 sgd(50, 0.02, 0.001); // remember to have learning rate divided by number of epochs
+    SGD2 sgd(40, 0.02, 0.005); // remember to have learning rate divided by number of epochs
     std::cout << "done loading\n";
     sgd.run_sgd();
 
