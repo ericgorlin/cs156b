@@ -175,10 +175,8 @@ void SGD2::run_sgd()
             //std::cout << "checkpoint 4" << endl;
 
             // Update user avg and movie avg
-            for (unsigned int i = 0; i < n_users; ++i)
-                user_avg[i] += lr * (error - lambda * user_avg[user]);
-            for (unsigned int i = 0; i < n_movies; ++i)
-                movie_avg[i] += lr * (error - lambda * movie_avg[movie]);
+            user_avg[user] += lr * (error - lambda * user_avg[user]);
+            movie_avg[movie] += lr * (error - lambda * movie_avg[movie]);
 
         }
         cout << "for loop done" << endl;
