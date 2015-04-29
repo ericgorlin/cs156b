@@ -30,7 +30,8 @@ SGD2::SGD2(int lf, double lambda_val, double lr)
         u[i] = new double[latent_factors];
 
         for (unsigned int j = 0; j < latent_factors; ++j)
-            u[i][j] = d(gen);
+            u[i][j] = .1;
+            //u[i][j] = d(gen);
     }
 
     v = 0;
@@ -40,7 +41,8 @@ SGD2::SGD2(int lf, double lambda_val, double lr)
         v[i] = new double[latent_factors];
 
         for (unsigned int j = 0; j < latent_factors; ++j)
-            v[i][j] = d(gen);
+            v[i][j] = .1;
+            //v[i][j] = d(gen);
     }
 
     clock_t begin = 0;
@@ -57,11 +59,11 @@ SGD2::SGD2(int lf, double lambda_val, double lr)
     user_avg = 0;
     user_avg = new double[n_users];
     for (unsigned int i = 0; i < n_users; ++i)
-        user_avg[i] = d(gen);
+        user_avg[i] = 0;
     movie_avg = 0;
     movie_avg = new double[n_movies];
     for (unsigned int i = 0; i < n_movies; ++i)
-        movie_avg[i] = d(gen);
+        movie_avg[i] = 0;
 
     global_mean = l->getGlobalMean();
 
@@ -105,8 +107,8 @@ void SGD2::run_sgd()
 
     double new_error = 0;
     double old_error = 1000000;
-    double **prev_u = u;
-    double **prev_v = v;
+    double **prev_u = 0;
+    double **prev_v = 0;
     prev_u = 0;
     prev_u = new double*[n_users];
     prev_v = 0;
@@ -254,7 +256,7 @@ double SGD2::find_error(int epoch) {
 void SGD2::create_file()
 {
     ofstream myfile1;
-    std::string s = "new_sgd_results.txt";
+    std::string s = "sgd_results.txt";
     myfile1.open(s);
     double **qual = 0;
     qual = new double *[2];
@@ -262,11 +264,18 @@ void SGD2::create_file()
     qual[1] = new double[2749898];
     qual = LoadData2::qual();
     cout << "checkpoint 100" << endl;
+    int c = 0;
 
     for (unsigned int i = 0; i < 2749898; ++i)
     {
         int user = qual[0][i] - 1;
         int movie = qual[1][i] - 1;
+        if (c < 7) {
+            cout << "here we go" << endl;
+            cout << user << " " << movie << endl;
+            cout << user_avg[user] << " " << movie_avg[movie] << endl;
+            cout << u[user][0] << " " << v[movie][0] << endl;
+        }
 
         //double predicted = user_vec[user] - global_mean + movie_vec[movie];
         //double predicted = 0;
@@ -278,21 +287,23 @@ void SGD2::create_file()
                 predicted = 5;
             else if (predicted < 1)
                 predicted = 1;
+
+            //cout << u[user][j] << " " << v[movie][j] << endl;
         }
+        c += 1;
 
         if (predicted > 5)
             predicted = 5;
         else if (predicted < 1)
             predicted = 1;
 
-
         myfile1 << predicted << "\n";
 
     }
-    myfile1.close();
+    //myfile1.close();
 }
 int main() {
-    SGD2 sgd(40, 0.02, 0.005); // remember to have learning rate divided by number of epochs
+    SGD2 sgd(40, 0.001, 0.001); // remember to have learning rate divided by number of epochs
     std::cout << "done loading\n";
     sgd.run_sgd();
 
