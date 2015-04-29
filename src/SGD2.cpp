@@ -107,6 +107,7 @@ void SGD2::run_sgd()
 
     double new_error = 0;
     double old_error = 1000000;
+    /*
     double **prev_u = 0;
     double **prev_v = 0;
     prev_u = 0;
@@ -117,6 +118,7 @@ void SGD2::run_sgd()
         prev_u[i] = new double[latent_factors];
     for (unsigned int i = 0; i < n_movies; ++i)
         prev_v[i] = new double[latent_factors];
+    */
 
     double lr; // learn rate
     int user;
@@ -129,7 +131,7 @@ void SGD2::run_sgd()
     double vval;
     oldu = new double[n_users];
 
-    for (unsigned int epoch = 1; epoch < 51; epoch++) {
+    for (unsigned int epoch = 1; epoch < 11; epoch++) {
 
         std::cout << "New epoch " << epoch << std::endl;
 
@@ -187,8 +189,8 @@ void SGD2::run_sgd()
         std::cout << "Error: " << new_error << std::endl;
         std::cout << "Old error: " << old_error << std::endl;
         if (new_error + .001 >= old_error && epoch > 5) {
-            u = prev_u;
-            v = prev_v;
+            //u = prev_u;
+            //v = prev_v;
             break;
         }
         old_error = new_error;
@@ -196,8 +198,8 @@ void SGD2::run_sgd()
 
     create_file();
     delete[] oldu;
-    delete[] prev_u;
-    delete[] prev_v;
+    //delete[] prev_u;
+    //delete[] prev_v;
 }
 
 // Find the test error on the probe data set.
@@ -256,7 +258,7 @@ double SGD2::find_error(int epoch) {
 void SGD2::create_file()
 {
     ofstream myfile1;
-    std::string s = "sgd_results.txt";
+    std::string s = "429sgd_results.txt";
     myfile1.open(s);
     double **qual = 0;
     qual = new double *[2];
@@ -303,7 +305,7 @@ void SGD2::create_file()
     //myfile1.close();
 }
 int main() {
-    SGD2 sgd(40, 0.001, 0.001); // remember to have learning rate divided by number of epochs
+    SGD2 sgd(40, 0.01, 0.001); // remember to have learning rate divided by number of epochs
     std::cout << "done loading\n";
     sgd.run_sgd();
 
