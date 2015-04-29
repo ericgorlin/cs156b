@@ -25,6 +25,8 @@ class SGD2
         double **v;
         double **y;
         double **probe;
+        double *user_avg;
+        double *movie_avg;
 
         void create_file();
 };
