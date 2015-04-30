@@ -45,11 +45,28 @@ SGD2::SGD2(int lf, double lambda_val, double lr)
             //v[i][j] = d(gen);
     }
 
+    cout << "Initiating SVD++ implicit arrays" << endl;
+    implicit = new double[n_movies];
+    implicit_sum = new double[n_users];
+    for (unsigned int i = 0; i < n_movies; ++i)
+    {
+        implicit[i] = 0.1; //initialize this with same value as implicit_sum
+    }
+    for (unsigned int i = 0; i < n_users; ++i)
+    {
+        implicit_sum[i] = 0.1 * movies_per_user[i].size();
+    }
+    cout << "Done with SVD++ implicit arrays" << endl;
+
     clock_t begin = 0;
 
     l = new LoadData2();
     y = 0;
     y = new double*[3];
+////    y[0] = new double[1374739];
+////    y[1] = new double[1374739];
+////    y[2] = new double[1374739];
+////    y = LoadData2::probe();
     y[0] = new double[98291669];
     y[1] = new double[98291669];
     y[2] = new double[98291669];
@@ -66,6 +83,15 @@ SGD2::SGD2(int lf, double lambda_val, double lr)
         movie_avg[i] = 0;
 
     global_mean = l->getGlobalMean();
+
+    movies_per_user = l->getMoviesPerUser();
+    norms = l->getNorms();
+
+ cout << "below two were new stuff" << endl;
+    cout << movies_per_user[123].size() << endl;
+     cout << "norms incoming" << endl;
+    cout << norms[3] << endl;
+    cout << "above two were new stuff" << endl;
 
     //user_vec = l->getBetterUserMean();
     //movie_vec = l->getBetterMovieMean();
@@ -94,6 +120,7 @@ SGD2::~SGD2()
     delete[] v;
     delete[] y;
     delete[] probe;
+    delete[] implicit;
 }
 
 // Runs alternating least squares to create the U and V matrices
@@ -131,39 +158,32 @@ void SGD2::run_sgd()
     double vval;
     oldu = new double[n_users];
 
-    for (unsigned int epoch = 1; epoch < 11; epoch++) {
+    for (unsigned int epoch = 1; epoch < 31; epoch++) {
 
         std::cout << "New epoch " << epoch << std::endl;
 
         //learn rate is original divided by epoch
         //lr = learn_rate / epoch;
+
         // Learning rate from funny paper
+        //lr = learn_rate;
+
+        // Korren learn_rate
+        if (epoch != 1)
+            learn_rate *= 0.9;
         lr = learn_rate;
         std::cout << lr << std::endl;
         //shuffle(y);
 
         // Iterate through data points
         for (unsigned int i = 0; i < 98291669; i++) { //< y.n_cols
+//        for (unsigned int i = 0; i <  1374739; i++) { //< y.n_cols
             rating = y[2][i];
             user = y[0][i] - 1;
             movie = y[1][i] - 1;
             //std::cout << "checkpoint 1" << endl;
             //std::cout << user << " " << movie << " " << rating << endl;
-            estimate = user_avg[user] + global_mean + movie_avg[movie];
-            //estimate = 0
-            for (unsigned int j = 0; j < latent_factors; ++j) {
-                estimate += u[user][j] * v[movie][j];
-
-                if (estimate > 5)
-                    estimate = 5;
-                else if (estimate < 1)
-                    estimate = 1;
-            }
-
-            if (estimate > 5)
-                estimate = 5;
-            else if (estimate < 1)
-                estimate = 1;
+            double estimate = SGD2::estimateRating(user, movie);
             //std::cout << "checkpoint 2" << endl;
             error = (rating - estimate);
 
@@ -178,6 +198,15 @@ void SGD2::run_sgd()
             // Update user avg and movie avg
             user_avg[user] += lr * (error - lambda * user_avg[user]);
             movie_avg[movie] += lr * (error - lambda * movie_avg[movie]);
+
+            // Update implicits
+            // first save the old ones and update sums using diffs?
+
+            implicit[movie] += lrImplicit * (error * norms[user] * u[user] - lambda * implicit[movie])
+            u[user] sum of all. its wrong right now. check koren
+
+            // update sums for all y_j changed
+            // update
 
         }
         cout << "for loop done" << endl;
@@ -222,26 +251,7 @@ double SGD2::find_error(int epoch) {
         int movie = probe[1][i] - 1;
         double rating = probe[2][i];
 
-        //double predicted = user_vec[user] - global_mean + movie_vec[movie];
-        //double predicted = 0;
-        double predicted = global_mean + user_avg[user] + movie_avg[movie];
-        //std::cout << u[user][1] << " u" << endl;
-        for (unsigned int j = 0; j < latent_factors; ++j) {
-            predicted += u[user][j] * v[movie][j];
-            if (predicted > 5)
-                predicted = 5;
-            else if (predicted < 1)
-                predicted = 1;
-        }
-        //predicted += user_vec[user] - global_mean + movie_vec[movie];
-
-        //cout << predicted << " " << rating << endl;
-        // Truncate the estimate to 1 and 5
-
-        if (predicted < 1)
-            predicted = 1;
-        else if (predicted > 5)
-            predicted = 5;
+        double predicted = SGD2::estimateRating(user, movie);
 
 
         error += (rating - predicted) * (rating - predicted);
@@ -265,19 +275,19 @@ void SGD2::create_file()
     qual[0] = new double[2749898];
     qual[1] = new double[2749898];
     qual = LoadData2::qual();
-    cout << "checkpoint 100" << endl;
+    cout << "Creating output file" << endl;
     int c = 0;
 
     for (unsigned int i = 0; i < 2749898; ++i)
     {
         int user = qual[0][i] - 1;
         int movie = qual[1][i] - 1;
-        if (c < 7) {
-            cout << "here we go" << endl;
-            cout << user << " " << movie << endl;
-            cout << user_avg[user] << " " << movie_avg[movie] << endl;
-            cout << u[user][0] << " " << v[movie][0] << endl;
-        }
+//        if (c < 7) {
+//            cout << "here we go" << endl;
+//            cout << user << " " << movie << endl;
+//            cout << user_avg[user] << " " << movie_avg[movie] << endl;
+//            cout << u[user][0] << " " << v[movie][0] << endl;
+//        }
 
         //double predicted = user_vec[user] - global_mean + movie_vec[movie];
         //double predicted = 0;
@@ -304,8 +314,38 @@ void SGD2::create_file()
     }
     //myfile1.close();
 }
+
+double SGD2::estimateRating(int user, int movie) {
+    double estimate = user_avg[user] + global_mean + movie_avg[movie];
+    //estimate = 0
+    for (unsigned int j = 0; j < latent_factors; ++j) {
+        estimate += (u[user][j] + implicit_sum[user] * norms[user]) * v[movie][j];
+    }
+
+    estimate +=
+
+    if (estimate > 5)
+        estimate = 5;
+    else if (estimate < 1)
+        estimate = 1;
+
+    return estimate;
+}
+
+//// For use in summing implicit-array values
+//double implicitSetSum(set<int> movies) {
+//    double sum = 0;
+//    std::set<unsigned long>::iterator it;
+//    for (it = movies.begin(); it != movies.end(); ++it)
+//    {
+//        u_long f = *it; // Note the "*" here
+//    }
+//    for (unsigned int i = 0; i < n_users)
+//
+//}
+
 int main() {
-    SGD2 sgd(40, 0.01, 0.001); // remember to have learning rate divided by number of epochs
+    SGD2 sgd(60, 0.005, 0.007); // remember to have learning rate divided by number of epochs
     std::cout << "done loading\n";
     sgd.run_sgd();
 

@@ -1,6 +1,9 @@
 #ifndef SGD_H
 #define SGD_H
-#include <armadillo>
+#include <set>
+#include <vector>
+//#include <armadillo>
+
 class LoadData2;
 
 class SGD2
@@ -27,6 +30,12 @@ class SGD2
         double **probe;
         double *user_avg;
         double *movie_avg;
+        double *implicit;
+        double *implicit_sum;
+        std::set<int> *movies_per_user;
+        std::vector<double> norms;
+        double estimateRating(int user, int movie);
+
 
         void create_file();
 };

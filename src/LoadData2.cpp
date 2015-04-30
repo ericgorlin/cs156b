@@ -22,10 +22,12 @@ LoadData2::LoadData2()
     //arma::umat locations = arma::umat(2, 716);
 
     //arma::umat locations = arma::umat(2, 716);
-    //int n_users = 458293;
-    //int n_movies = 17770;
+    n_users = 458293;
+    n_movies = 17770;
     totalMovies = 0;
     sumRatings = 0;
+
+    movies_per_user = new set<int>[n_users];
 
     // Open the file
     string line;
@@ -47,6 +49,7 @@ LoadData2::LoadData2()
             int userIdx = atoi(line.substr(0, space1).c_str());
             int movieIdx = atoi(line.substr(space1 + 1, space2).c_str());
             int rating = (atoi(line.substr(space3 + 1).c_str()));
+
 
             totalMovies += 1;
             sumRatings += rating;
@@ -76,8 +79,11 @@ LoadData2::LoadData2()
             data[1][c] = movieIdx;
             data[2][c] = rating;
 
+            movies_per_user[userIdx - 1].insert(movieIdx);
+
             userMap[userIdx] = newUser;
             movieMap[movieIdx] = newMovie;
+
 
             c += 1;
 
@@ -91,6 +97,7 @@ LoadData2::LoadData2()
 LoadData2::~LoadData2()
 {
     delete[] data;
+    delete[] movies_per_user;
 }
 
 // Load the data from the probe.dta file into a matrix
@@ -236,6 +243,25 @@ std::vector<double> LoadData2::getBetterMovieMean()
     }
     return movie_vec;
 }
+
+// For use in SVD++
+set<int> *LoadData2::getMoviesPerUser()
+{
+    return movies_per_user;
+}
+
+// For use in SVD++
+std::vector<double> LoadData2::getNorms()
+{
+    std::vector<double> norms;
+
+    for (int i = 0; i < n_users; i++) {
+        norms.push_back(pow(movies_per_user[i].size(), -0.5));
+    }
+    return norms;
+}
+
+
 /*
 int main() {
     LoadData l = LoadData();
