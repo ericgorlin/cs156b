@@ -14,7 +14,7 @@ LoadData2::LoadData2()
     std::cout << "Loading rating vectors..." << std::endl;
 
 
-    bool testingOnProbe = false; //change this on SGDpp.cpp as well
+    bool testingOnProbe = false; // change this in SGDpp.cpp as well
 
 
     n_users = 458293;
@@ -38,9 +38,9 @@ LoadData2::LoadData2()
     string line;
     string filename;
     if (testingOnProbe) {
-        filename = "src/um/probe.dta";
+        filename = "../um/probe.dta";
     } else {
-        filename = "src/um/train.dta";
+        filename = "../um/train.dta";
     }
     ifstream myfile(filename.c_str());
 
@@ -127,7 +127,7 @@ double **LoadData2::probe()
 
     // Open the file
     string line;
-    ifstream myfile("src/um/probe.dta");
+    ifstream myfile("../um/probe.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;
@@ -165,7 +165,7 @@ double **LoadData2::qual()
 
     // Open the file
     string line;
-    ifstream myfile("src/um/qual.dta");
+    ifstream myfile("../um/qual.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;

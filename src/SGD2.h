@@ -2,7 +2,6 @@
 #define SGD_H
 #include <set>
 #include <vector>
-//#include <armadillo>
 
 class LoadData2;
 

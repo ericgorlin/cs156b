@@ -5,9 +5,12 @@
 #include <fstream>
 #include <iostream>
 
+// g++ -Wall -g -std=c++11 SGDpp.cpp LoadData2.cpp -o runstuff (dont delete this)
+
+
 SGDpp::SGDpp(int lf, double lambda_val, double lr)
 {
-    bool testingOnProbe = false; // change this on LoadData2.cpp as well
+    bool testingOnProbe = false; // change this in LoadData2.cpp as well
 
     // Set the number of latent factors, users, and movies
     latent_factors = lf;
@@ -23,9 +26,9 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
     lambda = lambda_val;
 
     // Create a normal distribution to sample random numbers from
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::normal_distribution<> d(0,1);
+  //  std::random_device rd;
+  //  std::mt19937 gen(rd());
+ //   std::normal_distribution<> d(0,1);
 
     // Create the U and V matrices based on these parameters
     // Randomly initialize all values
@@ -162,7 +165,7 @@ void SGDpp::run_sgd()
     double estimate;
     double error;
 
-    double tempSumY[latent_factors];
+    double *tempSumY = new double[latent_factors];
 
     for (int i = 0; i < latent_factors; i++)
             tempSumY[i] = 0.0;
@@ -179,7 +182,9 @@ void SGDpp::run_sgd()
         int iter = 0;
         int perUser = 0; //
 
-
+        
+        
+        clock_t begin2 = clock();
         double countTo10 = 0;
         // Iterate through data points, one user at a time
         for (unsigned int i = 0; i < n_datapoints; ++i) { //< data.n_cols
@@ -242,13 +247,14 @@ void SGDpp::run_sgd()
                     tempSumY[k] = 0.0;
                 }
             }
-            double begin2 = clock();
-            if(i % (n_datapoints / 10 + 1) == 1) {
-
-                cout << (clock() - begin2) / CLOCKS_PER_SEC / 60. << " min left on epoch" << endl;
-                cout << countTo10 << "/10 done, ETA = " <<
-                ((double) clock() - begin2) / CLOCKS_PER_SEC / 60. * (n_datapoints - i) / (n_datapoints / 10 + 1) << endl;
+            if(i % (n_datapoints / 10) == 1) {
+                if (countTo10 != 0) {
+                    cout << ((double)clock() - begin2) / CLOCKS_PER_SEC / 60. << " minute chunk ";
+                    cout << countTo10 << "/10 done, ETA = " <<
+                    ((double)clock() - begin2) / CLOCKS_PER_SEC / 60. * (n_datapoints - i) / (n_datapoints / 10 + 1) << " minutes" << endl;
+                }
                 begin2 = clock();
+                
                 countTo10++;
             }
 
@@ -260,7 +266,7 @@ void SGDpp::run_sgd()
         new_error = find_error(epoch);
 
         // If there's no decrease in error, stop.
-        std::cout << "Error: " << new_error << std::endl;
+        std::cout << "RMSE: " << new_error << std::endl;
         std::cout << "Old error: " << old_error << std::endl;
         if (new_error + .001 >= old_error && epoch > 5) {
             break;
@@ -305,7 +311,7 @@ double SGDpp::find_error(int epoch) {
     }
 
     // Scale by the number of reviews
-    return error / 1374739;
+    return pow(error / 1374739, 0.5);
     //return error / 16;
 
 }
