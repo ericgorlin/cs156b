@@ -2,7 +2,6 @@
 #define SGD_H
 #include <set>
 #include <vector>
-//#include <armadillo>
 
 class LoadData2;
 
@@ -13,6 +12,7 @@ class SGDpp
         virtual ~SGDpp();
         void run_sgd();
         double find_error(int epoch);
+        unsigned int n_datapoints;
     private:
         int latent_factors;
         int n_users;

@@ -38,6 +38,7 @@ class LoadData2
 
         unsigned int n_users;
         unsigned int n_movies;
+        unsigned int n_datapoints;
 
     protected:
     private:

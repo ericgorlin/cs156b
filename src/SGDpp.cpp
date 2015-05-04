@@ -7,11 +7,17 @@
 
 SGDpp::SGDpp(int lf, double lambda_val, double lr)
 {
+    bool testingOnProbe = false; // change this on LoadData2.cpp as well
+
     // Set the number of latent factors, users, and movies
     latent_factors = lf;
     learn_rate = lr;
     n_users = 458293;
     n_movies = 17770;
+    if (testingOnProbe)
+        n_datapoints = 1374739;
+    else
+        n_datapoints = 98291669;
     //n_users = 5;
     //n_movies = 17754;
     lambda = lambda_val;
@@ -25,7 +31,6 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
     // Randomly initialize all values
     u = 0;
     u = new double*[n_users];
-    clock_t begin2 = clock();
     for (unsigned int i = 0; i < n_users; ++i)
     {
         u[i] = new double[latent_factors];
@@ -80,13 +85,9 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
 
     data = 0;
     data = new double*[3];
-////    data[0] = new double[1374739];
-////    data[1] = new double[1374739];
-////    data[2] = new double[1374739];
-////    data = LoadData2::probe();
-    data[0] = new double[98291669];
-    data[1] = new double[98291669];
-    data[2] = new double[98291669];
+    data[0] = new double[n_datapoints];
+    data[1] = new double[n_datapoints];
+    data[2] = new double[n_datapoints];
     data = l->loadRatingsVector();
 
     user_avg = 0;
@@ -178,9 +179,12 @@ void SGDpp::run_sgd()
         int iter = 0;
         int perUser = 0; //
 
+
+        double countTo10 = 0;
         // Iterate through data points, one user at a time
-        for (unsigned int i = 0; i < 98291669; ++i) { //< data.n_cols
+        for (unsigned int i = 0; i < n_datapoints; ++i) { //< data.n_cols
 //        for (unsigned int i = 0; i <  1374739; i++) { //< data.n_cols
+
 
             user = data[0][i] - 1;
             movie = data[1][i] - 1;
@@ -218,12 +222,13 @@ void SGDpp::run_sgd()
 
                     set<int>::iterator it;
                     for (it = movies_per_user[user].begin(); it != movies_per_user[user].end(); ++it) {
-                        int thisMovie = *it;
+                        int thisMovie = *it - 1;
                         double *currY = y[thisMovie];
                         double update = lr * (tempSumY[k] - lr * currY[k]);
                         currY[k] += update;
                         totalUpdate += update;
                     }
+
 
                     sumY[user][k] += totalUpdate;
                 }
@@ -237,16 +242,19 @@ void SGDpp::run_sgd()
                     tempSumY[k] = 0.0;
                 }
             }
-            if(i % 100000 == 0) {
+            double begin2 = clock();
+            if(i % (n_datapoints / 10 + 1) == 1) {
 
-                cout << (clock() - begin) / CLOCKS_PER_SEC / 60. << " minutes for this round" << endl;
-                cout << (double) i / 98291669 << " done, ETA = " << ((double) clock() - begin) / CLOCKS_PER_SEC / 60. * (n_users - i) / 100000;
-                begin = clock();
+                cout << (clock() - begin2) / CLOCKS_PER_SEC / 60. << " min left on epoch" << endl;
+                cout << countTo10 << "/10 done, ETA = " <<
+                ((double) clock() - begin2) / CLOCKS_PER_SEC / 60. * (n_datapoints - i) / (n_datapoints / 10 + 1) << endl;
+                begin2 = clock();
+                countTo10++;
             }
 
             prev_user = user;
         }
-        cout << "for loop done" << endl;
+        cout << "Epoch completed." << endl;
 
         // Find the error for the new values
         new_error = find_error(epoch);
@@ -255,8 +263,6 @@ void SGDpp::run_sgd()
         std::cout << "Error: " << new_error << std::endl;
         std::cout << "Old error: " << old_error << std::endl;
         if (new_error + .001 >= old_error && epoch > 5) {
-            //u = prev_u;
-            //v = prev_v;
             break;
         }
         old_error = new_error;
