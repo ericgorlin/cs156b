@@ -25,6 +25,7 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
     // Randomly initialize all values
     u = 0;
     u = new double*[n_users];
+    clock_t begin2 = clock();
     for (unsigned int i = 0; i < n_users; ++i)
     {
         u[i] = new double[latent_factors];
@@ -45,8 +46,15 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
             //v[i][j] = d(gen);
     }
 
+    l = new LoadData2();
+
+    global_mean = l->getGlobalMean();
+    movies_per_user = l->getMoviesPerUser();
+    norms = l->getNorms();
+
     cout << "Initiating SVD++ implicit arrays" << endl;
     y = new double*[n_movies];
+
     for (unsigned int i = 0; i < n_movies; ++i)
     {
         y[i] = new double[lf];
@@ -66,12 +74,10 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
 
         }
     }
-
     cout << "Done initializing SVD++ implicit arrays" << endl;
 
     clock_t begin = 0;
 
-    l = new LoadData2();
     data = 0;
     data = new double*[3];
 ////    data[0] = new double[1374739];
@@ -82,7 +88,6 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
     data[1] = new double[98291669];
     data[2] = new double[98291669];
     data = l->loadRatingsVector();
-    std::cout << "checkpoint 1" << std::endl;
 
     user_avg = 0;
     user_avg = new double[n_users];
@@ -93,10 +98,7 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
     for (unsigned int i = 0; i < n_movies; ++i)
         movie_avg[i] = 0;
 
-    global_mean = l->getGlobalMean();
 
-    movies_per_user = l->getMoviesPerUser();
-    norms = l->getNorms();
 
     //user_vec = l->getBetterUserMean();
     //movie_vec = l->getBetterMovieMean();
@@ -185,8 +187,8 @@ void SGDpp::run_sgd()
             rating = data[2][i];
 
             double *currentPointSumY = sumY[user];
+
             int userNumMovies = movies_per_user[user].size();
-            //std::cout << "checkpoint 1" << endl;
             //std::cout << user << " " << movie << " " << rating << endl;
 
             //std::cout << "checkpoint 2" << endl;
@@ -201,6 +203,7 @@ void SGDpp::run_sgd()
             } else {
                 perUser++;
             }
+
 
             for (unsigned int k = 0; k < latent_factors; ++k) {
                 double oldUserVal = u[user][k];
@@ -230,10 +233,17 @@ void SGDpp::run_sgd()
             }
 
             if (perUser == userNumMovies) {
-                for (int i = 0; i < latent_factors; i++) {
-                    tempSumY[i] = 0.0;
+                for (int k = 0; k < latent_factors; k++) {
+                    tempSumY[k] = 0.0;
                 }
             }
+            if(i % 100000 == 0) {
+
+                cout << (clock() - begin) / CLOCKS_PER_SEC / 60. << " minutes for this round" << endl;
+                cout << (double) i / 98291669 << " done, ETA = " << ((double) clock() - begin) / CLOCKS_PER_SEC / 60. * (n_users - i) / 100000;
+                begin = clock();
+            }
+
             prev_user = user;
         }
         cout << "for loop done" << endl;
