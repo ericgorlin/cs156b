@@ -23,7 +23,7 @@ SGD2::SGD2(int lf, double lambda_val, double lr, double lambda2, double lr2)
     // Create a normal distribution to sample random numbers from
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> d(1,.05);
+    std::normal_distribution<> d(0,.05);
     srand (static_cast <unsigned> (time(0)));
 
     // Create the U and V matrices based on these parameters
