@@ -4,8 +4,10 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <cmath>
+#include <cstdlib>
 
-SGD2::SGD2(int lf, double lambda_val, double lr)
+SGD2::SGD2(int lf, double lambda_val, double lr, double lambda2, double lr2)
 {
     // Set the number of latent factors, users, and movies
     latent_factors = lf;
@@ -15,11 +17,14 @@ SGD2::SGD2(int lf, double lambda_val, double lr)
     //n_users = 5;
     //n_movies = 17754;
     lambda = lambda_val;
+    lambda_avg = lambda2;
+    learn_rate_avg = lr2;
 
     // Create a normal distribution to sample random numbers from
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> d(0,1);
+    std::normal_distribution<> d(1,.05);
+    srand (static_cast <unsigned> (time(0)));
 
     // Create the U and V matrices based on these parameters
     // Randomly initialize all values
@@ -30,8 +35,7 @@ SGD2::SGD2(int lf, double lambda_val, double lr)
         u[i] = new double[latent_factors];
 
         for (unsigned int j = 0; j < latent_factors; ++j)
-            u[i][j] = .1;
-            //u[i][j] = d(gen);
+            u[i][j] = d(gen);
     }
 
     v = 0;
@@ -41,8 +45,7 @@ SGD2::SGD2(int lf, double lambda_val, double lr)
         v[i] = new double[latent_factors];
 
         for (unsigned int j = 0; j < latent_factors; ++j)
-            v[i][j] = .1;
-            //v[i][j] = d(gen);
+            v[i][j] = d(gen);
     }
 
     clock_t begin = 0;
@@ -59,11 +62,11 @@ SGD2::SGD2(int lf, double lambda_val, double lr)
     user_avg = 0;
     user_avg = new double[n_users];
     for (unsigned int i = 0; i < n_users; ++i)
-        user_avg[i] = 0;
+        //user_avg[i] = d(gen);
     movie_avg = 0;
     movie_avg = new double[n_movies];
     for (unsigned int i = 0; i < n_movies; ++i)
-        movie_avg[i] = 0;
+        movie_avg[i] = d(gen);
 
     global_mean = l->getGlobalMean();
 
@@ -98,7 +101,7 @@ SGD2::~SGD2()
 
 // Runs alternating least squares to create the U and V matrices
 // wij = 1 if user i rated movie j and 0 otherwise
-void SGD2::run_sgd()
+double SGD2::run_sgd()
 {
     cout << y[0][0] << endl;
     cout << y[1][0] << endl;
@@ -131,7 +134,8 @@ void SGD2::run_sgd()
     double vval;
     oldu = new double[n_users];
 
-    for (unsigned int epoch = 1; epoch < 11; epoch++) {
+    for (unsigned int epoch = 1; epoch < 75; epoch++) {
+        clock_t begin = 0;
 
         std::cout << "New epoch " << epoch << std::endl;
 
@@ -143,6 +147,7 @@ void SGD2::run_sgd()
         //shuffle(y);
 
         // Iterate through data points
+        //#pragma omp parallel for
         for (unsigned int i = 0; i < 98291669; i++) { //< y.n_cols
             rating = y[2][i];
             user = y[0][i] - 1;
@@ -151,13 +156,16 @@ void SGD2::run_sgd()
             //std::cout << user << " " << movie << " " << rating << endl;
             estimate = user_avg[user] + global_mean + movie_avg[movie];
             //estimate = 0
+            //#pragma omp parallel for
             for (unsigned int j = 0; j < latent_factors; ++j) {
                 estimate += u[user][j] * v[movie][j];
 
+                /*
                 if (estimate > 5)
                     estimate = 5;
                 else if (estimate < 1)
                     estimate = 1;
+                */
             }
 
             if (estimate > 5)
@@ -169,15 +177,17 @@ void SGD2::run_sgd()
 
             oldu = u[user];
             //std::cout << "checkpoint 3" << endl;
+            //#pragma omp parallel for
             for (unsigned int k = 0; k < latent_factors; ++k)
                 u[user][k] += lr * (error * v[movie][k] - lambda * oldu[k]);
+            //#pragma omp parallel for
             for (unsigned int k = 0; k < latent_factors; ++k)
                 v[movie][k] += lr * (error * oldu[k] - lambda * v[movie][k]);
             //std::cout << "checkpoint 4" << endl;
 
             // Update user avg and movie avg
-            user_avg[user] += lr * (error - lambda * user_avg[user]);
-            movie_avg[movie] += lr * (error - lambda * movie_avg[movie]);
+            user_avg[user] += learn_rate_avg * (error - lambda_avg * user_avg[user]);
+            movie_avg[movie] += learn_rate_avg * (error - lambda_avg * movie_avg[movie]);
 
         }
         cout << "for loop done" << endl;
@@ -188,16 +198,21 @@ void SGD2::run_sgd()
         // If there's no decrease in error, stop.
         std::cout << "Error: " << new_error << std::endl;
         std::cout << "Old error: " << old_error << std::endl;
-        if (new_error + .001 >= old_error && epoch > 5) {
+        if (new_error + .00001 >= old_error && epoch > 5) {
             //u = prev_u;
             //v = prev_v;
             break;
         }
         old_error = new_error;
+
+        clock_t end = clock();
+        double elapsed_min = double(end - begin) / CLOCKS_PER_SEC / 60;
+        cout << elapsed_min << " minutes to get for this epoch" << endl;
     }
 
     create_file();
     delete[] oldu;
+    return new_error;
     //delete[] prev_u;
     //delete[] prev_v;
 }
@@ -228,10 +243,12 @@ double SGD2::find_error(int epoch) {
         //std::cout << u[user][1] << " u" << endl;
         for (unsigned int j = 0; j < latent_factors; ++j) {
             predicted += u[user][j] * v[movie][j];
+            /*
             if (predicted > 5)
                 predicted = 5;
             else if (predicted < 1)
                 predicted = 1;
+            */
         }
         //predicted += user_vec[user] - global_mean + movie_vec[movie];
 
@@ -248,7 +265,7 @@ double SGD2::find_error(int epoch) {
     }
 
     // Scale by the number of reviews
-    return error / 1374739;
+    return sqrt(error / 1374739);
     //return error / 16;
 
 }
@@ -272,23 +289,17 @@ void SGD2::create_file()
     {
         int user = qual[0][i] - 1;
         int movie = qual[1][i] - 1;
-        if (c < 7) {
-            cout << "here we go" << endl;
-            cout << user << " " << movie << endl;
-            cout << user_avg[user] << " " << movie_avg[movie] << endl;
-            cout << u[user][0] << " " << v[movie][0] << endl;
-        }
-
         //double predicted = user_vec[user] - global_mean + movie_vec[movie];
         //double predicted = 0;
         double predicted = user_avg[user] + global_mean + movie_avg[movie];
         for (unsigned int j = 0; j < latent_factors; ++j) {
             predicted += u[user][j] * v[movie][j];
-
+            /*
             if (predicted > 5)
                 predicted = 5;
             else if (predicted < 1)
                 predicted = 1;
+            */
 
             //cout << u[user][j] << " " << v[movie][j] << endl;
         }
@@ -304,13 +315,76 @@ void SGD2::create_file()
     }
     //myfile1.close();
 }
+
 int main() {
-    SGD2 sgd(40, 0.01, 0.001); // remember to have learning rate divided by number of epochs
+    double error;
+    //SGD2 sgd(120, .012, .005, .00001, .005); // remember to have learning rate divided by number of epochs
+    ofstream myfile1;
+    std::string s = "all_results4.txt";
     std::cout << "done loading\n";
-    sgd.run_sgd();
+    myfile1.open(s);
+    /*
+    error = sgd.run_sgd();
+    myfile1 << "120 .012 .005 .00001 .005 " << error << endl;
+    */
+    SGD2 sgd2(10, .012, .005, .001, .001);
+    //SGD2 sgd2(300, .002, .007, .001, .001);
+    error = sgd2.run_sgd();
+    myfile1 << "100 .01 .005 .001 .001 " << error << endl;
+    /*
+    SGD2 sgd3(100, .012, .005, .001, .0001);
+    error = sgd3.run_sgd();
+    myfile1 << "100 .012 .005 .001 .0001 " << error << endl;
+
+    SGD2 sgd4(100, .012, .005, .001, .00001);
+    error = sgd4.run_sgd();
+    myfile1 << "100 .012 .005 .001 .00001 " << error << endl;
+
+    SGD2 sgd5(100, .012, .005, .001, .01);
+    error = sgd5.run_sgd();
+    myfile1 << "100 .012 .005 .001 .01 " << error << endl;
+
+    SGD2 sgd6(100, .012, .005, .001, .1);
+    error = sgd6.run_sgd();
+    myfile1 << "100 .012 .005 .001 .1 " << error << endl;
+
+    SGD2 sgd7(100, .012, .005, .001, 1);
+    error = sgd7.run_sgd();
+    myfile1 << "100 .012 .005 .001 1 " << error << endl;
+
+    SGD2 sgd8(100, .012, .005, .001, 10);
+    error = sgd8.run_sgd();
+    myfile1 << "100 .012 .005 .001 10 " << error << endl;
+    */
+
+    /*
+    SGD2 sgd9(100, .012, .005, .01, .001);
+    error = sgd9.run_sgd();
+    myfile1 << "100 .012 .005 .001 .0001 " << error << endl;
 
 
+    SGD2 sgd10(100, .012, .005, .1, .001);
+    error = sgd10.run_sgd();
+    myfile1 << "100 .012 .005 .001 .00001 " << error << endl;
+
+    SGD2 sgd11(100, .012, .005, .0001, .001);
+    error = sgd11.run_sgd();
+    myfile1 << "100 .012 .005 .001 .01 " << error << endl;
+
+    SGD2 sgd12(100, .012, .005, .00001, .001);
+    error = sgd12.run_sgd();
+    myfile1 << "100 .012 .005 .001 .1 " << error << endl;
+
+    SGD2 sgd13(100, .012, .005, .00001, .001);
+    error = sgd13.run_sgd();
+    myfile1 << "100 .012 .005 .001 1 " << error << endl;
+
+    SGD2 sgd14(100, .012, .005, 1, 1);
+    error = sgd14.run_sgd();
+    myfile1 << "100 .012 .005 .001 10 " << error << endl;
+    */
 }
+
 
 
 

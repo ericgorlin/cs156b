@@ -208,7 +208,7 @@ double LoadData2::getMovieStddev(int movieIdx)
 
 double LoadData2::getGlobalMean()
 {
-    return sumRatings / totalMovies;
+    return (1.0 * sumRatings) / totalMovies;
 }
 
 std::vector<double> LoadData2::getBetterUserMean()

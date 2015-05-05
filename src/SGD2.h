@@ -6,9 +6,9 @@ class LoadData2;
 class SGD2
 {
     public:
-        SGD2(int lf, double lambda_val, double lr);
+        SGD2(int lf, double lambda_val, double lr, double lambda2, double lr2);
         virtual ~SGD2();
-        void run_sgd();
+        double run_sgd();
         double find_error(int epoch);
     private:
         int latent_factors;
@@ -17,6 +17,8 @@ class SGD2
         double lambda;
         double learn_rate;
         double global_mean;
+        double lambda_avg;
+        double learn_rate_avg;
         std::vector<double> user_vec;
         std::vector<double> movie_vec;
 
