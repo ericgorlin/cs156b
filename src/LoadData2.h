@@ -3,8 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
-#define ARMA_64BIT_WORD
-#include <armadillo>
 #include <unordered_map>
 #include <math.h>
 #include <set>
@@ -36,18 +34,19 @@ class LoadData2
         std::vector<double> getNorms();
 
 
+        bool testingOnProbe;
         unsigned int n_users;
         unsigned int n_movies;
         unsigned int n_datapoints;
 
     protected:
     private:
-        unordered_map<int, std::vector<double>> userMap;
-        unordered_map<int, std::vector<double>> movieMap;
+        unordered_map<int, std::vector<double> > userMap;
+        unordered_map<int, std::vector<double> > movieMap;
         double **data;
         set<int> *movies_per_user;
         int totalMovies;
-        int sumRatings;
+        double sumRatings;
 };
 
 #endif // LOADDATA_H
