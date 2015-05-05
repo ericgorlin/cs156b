@@ -26,6 +26,7 @@ class SGD
         arma::vec movieAvg;
 
         void create_file(arma::mat u, arma::mat v);
+        double global_average;
 };
 
 #endif // SGD_H
