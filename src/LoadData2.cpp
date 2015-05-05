@@ -13,27 +13,40 @@ LoadData2::LoadData2()
     //unordered_map<int, array<int, 3>> movieMap;
     std::cout << "Loading rating vectors..." << std::endl;
 
+
+    bool testingOnProbe = false; // change this in SGDpp.cpp as well
+
+
+    n_users = 458293;
+    n_movies = 17770;
+    if (testingOnProbe)
+        n_datapoints = 1374739;
+    else
+        n_datapoints = 98291669;
     // Training set has 98291669 values
     data = 0;
     data = new double*[3];
     for (unsigned int i = 0; i < 3; i++)
-        data[i] = new double[98291669];
-    std::cout << "created a vector" << std::endl;
-    //arma::umat locations = arma::umat(2, 716);
+        data[i] = new double[n_datapoints];
 
-    //arma::umat locations = arma::umat(2, 716);
-    //int n_users = 458293;
-    //int n_movies = 17770;
     totalMovies = 0;
     sumRatings = 0;
 
+    movies_per_user = new set<int>[n_users];
+
     // Open the file
     string line;
-    //ifstream myfile("../src/um/train.dta");
-    ifstream myfile("src/um/train.dta");
+    string filename;
+    if (testingOnProbe) {
+        filename = "../um/probe.dta";
+    } else {
+        filename = "../um/train.dta";
+    }
+    ifstream myfile(filename.c_str());
+
     //ifstream myfile("um/all.dta");
     //ifstream myfile("um/shortall.dta");
-    std::cout << myfile.is_open() << " open" << std::endl;
+    cout << myfile.is_open() << " open" << endl;
     int c = 0;
     if (myfile.is_open())
     {
@@ -48,49 +61,54 @@ LoadData2::LoadData2()
             int movieIdx = atoi(line.substr(space1 + 1, space2).c_str());
             int rating = (atoi(line.substr(space3 + 1).c_str()));
 
+
             totalMovies += 1;
             sumRatings += rating;
-            vector<double> userArr;
-            vector<double> movieArr;
+//            vector<double> userArr;
+//            vector<double> movieArr;
 
-            if (userMap.count(userIdx) > 0)
-                userArr = userMap[userIdx];
-            else
-                userArr = {0, 0, 0};
-
-            if (movieMap.count(movieIdx) > 0)
-                movieArr = movieMap[movieIdx];
-            else
-                movieArr = {0, 0, 0};
-            double uN = userArr[0] + 1;
-            double uM = userArr[1] + (rating - userArr[1]) / uN;
-            double uS = userArr[2] + (rating - userArr[1]) * (rating - uM);
-            vector<double> newUser = {uN, uM, uS};
-
-            double mN = movieArr[0] + 1;
-            double mM = movieArr[1] + (rating - movieArr[1]) / mN;
-            double mS = movieArr[2] + (rating - movieArr[1]) * (rating - mM);
-            vector<double> newMovie = {mN, mM, mS};
+//            if (userMap.count(userIdx) > 0)
+//                userArr = userMap[userIdx];
+//            else
+//                userArr = {0, 0, 0};
+//
+//            if (movieMap.count(movieIdx) > 0)
+//                movieArr = movieMap[movieIdx];
+//            else
+//                movieArr = {0, 0, 0};
+//            double uN = userArr[0] + 1;
+//            double uM = userArr[1] + (rating - userArr[1]) / uN;
+//            double uS = userArr[2] + (rating - userArr[1]) * (rating - uM);
+//            vector<double> newUser = {uN, uM, uS};
+//
+//            double mN = movieArr[0] + 1;
+//            double mM = movieArr[1] + (rating - movieArr[1]) / mN;
+//            double mS = movieArr[2] + (rating - movieArr[1]) * (rating - mM);
+//            vector<double> newMovie = {mN, mM, mS};
 
             data[0][c] = userIdx;
             data[1][c] = movieIdx;
             data[2][c] = rating;
 
-            userMap[userIdx] = newUser;
-            movieMap[movieIdx] = newMovie;
+            movies_per_user[userIdx - 1].insert(movieIdx);
+
+//            userMap[userIdx] = newUser;
+//            movieMap[movieIdx] = newMovie;
+
 
             c += 1;
 
 
         }
         std::cout << c << std::endl;
-        std::cout << userMap.size() << std::endl;
+//        std::cout << userMap.size() << std::endl;
     }
 }
 
 LoadData2::~LoadData2()
 {
     delete[] data;
+    delete[] movies_per_user;
 }
 
 // Load the data from the probe.dta file into a matrix
@@ -109,7 +127,7 @@ double **LoadData2::probe()
 
     // Open the file
     string line;
-    ifstream myfile("src/um/probe.dta");
+    ifstream myfile("../um/probe.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;
@@ -147,7 +165,7 @@ double **LoadData2::qual()
 
     // Open the file
     string line;
-    ifstream myfile("src/um/qual.dta");
+    ifstream myfile("../um/qual.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;
@@ -236,6 +254,25 @@ std::vector<double> LoadData2::getBetterMovieMean()
     }
     return movie_vec;
 }
+
+// For use in SVD++
+set<int> *LoadData2::getMoviesPerUser()
+{
+    return movies_per_user;
+}
+
+// For use in SVD++
+std::vector<double> LoadData2::getNorms()
+{
+    std::vector<double> norms;
+
+    for (int i = 0; i < n_users; i++) {
+        norms.push_back(pow(movies_per_user[i].size(), -0.5));
+    }
+    return norms;
+}
+
+
 /*
 int main() {
     LoadData l = LoadData();
