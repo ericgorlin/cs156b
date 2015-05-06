@@ -4,13 +4,23 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <random>
 
-// g++ -Wall -g -std=c++11 SGDpp.cpp LoadData2.cpp -o runstuff (dont delete this)
+int main() {
+    //SGDpp sgd(100, 0.005, 0.007, 0.015); 4.4%
+    //SGDpp sgd(100, 0.008, 0.007, 0.02);  4.65% .905 probe
+    // here started reverting to older u + v when increased error
+    SGDpp sgd(100, 0.02, 0.007, 0.02);
+    std::cout << "Done loading\n";
+    sgd.run_sgd();
+    
+}
 
-
-SGDpp::SGDpp(int lf, double lambda_val, double lr)
+SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
 {
     bool testingOnProbe = false; // change this in LoadData2.cpp as well
+    outfile = "SGDpp_results6.txt";
+
 
     // Set the number of latent factors, users, and movies
     latent_factors = lf;
@@ -24,11 +34,12 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
     //n_users = 5;
     //n_movies = 17754;
     lambda = lambda_val;
+    lambdaY = lambda_y;
 
     // Create a normal distribution to sample random numbers from
-  //  std::random_device rd;
-  //  std::mt19937 gen(rd());
- //   std::normal_distribution<> d(0,1);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<> d(0, 0.01);//(0.1, 0.04);
 
     // Create the U and V matrices based on these parameters
     // Randomly initialize all values
@@ -39,8 +50,8 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
         u[i] = new double[latent_factors];
 
         for (unsigned int j = 0; j < latent_factors; ++j)
-            u[i][j] = .1;
-            //u[i][j] = d(gen);
+            //u[i][j] = .1;
+            u[i][j] = d(gen);
     }
 
     v = 0;
@@ -50,13 +61,14 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
         v[i] = new double[latent_factors];
 
         for (unsigned int j = 0; j < latent_factors; ++j)
-            v[i][j] = .1;
-            //v[i][j] = d(gen);
+            //v[i][j] = .1;
+            v[i][j] = d(gen);
     }
 
     l = new LoadData2();
 
     global_mean = l->getGlobalMean();
+    cout << "Global Mean = " << global_mean << endl;
     movies_per_user = l->getMoviesPerUser();
     norms = l->getNorms();
 
@@ -68,7 +80,8 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
         y[i] = new double[lf];
 
         for (unsigned int j = 0; j < lf; ++j) {
-            y[i][j] = 0.1;
+            //y[i][j] = 0.1;
+            y[i][j] = d(gen);
         }
     }
 
@@ -76,10 +89,18 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr)
     for (unsigned int i = 0; i < n_users; ++i)
     {
         sumY[i] = new double[lf];
-
+        
         for (unsigned int j = 0; j < lf; ++j) {
-            sumY[i][j] = 0.1 * movies_per_user[i].size();
+            sumY[i][j] = 0;
+        }
 
+        set<int>::iterator it;
+        for (it = movies_per_user[i].begin(); it != movies_per_user[i].end(); ++it) {
+            int thisMovie = *it - 1;
+            
+            for (unsigned int j = 0; j < lf; ++j) {
+                sumY[i][j] += y[thisMovie][j];
+            }
         }
     }
     cout << "Done initializing SVD++ implicit arrays" << endl;
@@ -145,7 +166,7 @@ void SGDpp::run_sgd()
 
     double new_error = 0;
     double old_error = 1000000;
-    /*
+    
     double **prev_u = 0;
     double **prev_v = 0;
     prev_u = 0;
@@ -156,13 +177,12 @@ void SGDpp::run_sgd()
         prev_u[i] = new double[latent_factors];
     for (unsigned int i = 0; i < n_movies; ++i)
         prev_v[i] = new double[latent_factors];
-    */
+    
 
     double lr = learn_rate;
     int user;
     int movie;
     int rating;
-    double estimate;
     double error;
 
     double *tempSumY = new double[latent_factors];
@@ -170,7 +190,7 @@ void SGDpp::run_sgd()
     for (int i = 0; i < latent_factors; i++)
             tempSumY[i] = 0.0;
 
-    for (unsigned int epoch = 1; epoch < 31; epoch++) {
+    for (unsigned int epoch = 1; epoch < 51; epoch++) {
 
         std::cout << "New epoch " << epoch << std::endl;
 
@@ -179,8 +199,7 @@ void SGDpp::run_sgd()
         //shuffle(y);
 
         int prev_user = -1;
-        int iter = 0;
-        int perUser = 0; //
+        int perUser = 0;
 
         
         
@@ -229,7 +248,7 @@ void SGDpp::run_sgd()
                     for (it = movies_per_user[user].begin(); it != movies_per_user[user].end(); ++it) {
                         int thisMovie = *it - 1;
                         double *currY = y[thisMovie];
-                        double update = lr * (tempSumY[k] - lr * currY[k]);
+                        double update = lr * (tempSumY[k] - lambdaY * currY[k]);
                         currY[k] += update;
                         totalUpdate += update;
                     }
@@ -268,7 +287,11 @@ void SGDpp::run_sgd()
         // If there's no decrease in error, stop.
         std::cout << "RMSE: " << new_error << std::endl;
         std::cout << "Old error: " << old_error << std::endl;
-        if (new_error + .001 >= old_error && epoch > 5) {
+        if (new_error + .0001 >= old_error && epoch > 5) {
+            if (new_error > old_error) {
+                u = prev_u;
+                v = prev_v;
+            }
             break;
         }
         old_error = new_error;
@@ -280,8 +303,11 @@ void SGDpp::run_sgd()
 
     delete[] tempSumY;
     create_file();
-    //delete[] prev_u;
-    //delete[] prev_v;
+    
+    cout << ((double)clock() - begin) / CLOCKS_PER_SEC / 60. << " minutes to learn" << endl;
+
+    delete[] prev_u;
+    delete[] prev_v;
 }
 
 // Find the test error on the probe data set.
@@ -293,8 +319,6 @@ double SGDpp::find_error(int epoch) {
     probe[2] = new double[1374739];
     probe = LoadData2::probe();
     double error = 0;
-    double uval = 0;
-    double vval = 0;
     // Go through all the columns of probe
     // for (unsigned int i = 0; i < 16; ++i)
     for (unsigned int i = 0; i < 1374739; ++i)
@@ -321,8 +345,7 @@ double SGDpp::find_error(int epoch) {
 void SGDpp::create_file()
 {
     ofstream myfile1;
-    std::string s = "430SGDpp_results.txt";
-    myfile1.open(s);
+    myfile1.open(outfile);
     double **qual = 0;
     qual = new double *[2];
     qual[0] = new double[2749898];
@@ -369,25 +392,6 @@ double SGDpp::estimateRating(int user, int movie) {
     return estimate;
 }
 
-//// For use in summing implicit-array values
-//double implicitSetSum(set<int> movies) {
-//    double sum = 0;
-//    std::set<unsigned long>::iterator it;
-//    for (it = movies.begin(); it != movies.end(); ++it)
-//    {
-//        u_long f = *it; // Note the "*" here
-//    }
-//    for (unsigned int i = 0; i < n_users)
-//
-//}
-
-int main() {
-    SGDpp sgd(60, 0.005, 0.007);
-    std::cout << "Done loading\n";
-    sgd.run_sgd();
-
-
-}
 
 
 

@@ -2,22 +2,25 @@
 #define SGD_H
 #include <set>
 #include <vector>
+#include <string>
 
 class LoadData2;
 
 class SGDpp
 {
     public:
-        SGDpp(int lf, double lambda_val, double lr);
+        SGDpp(int lf, double lambda_val, double lr, double lambda_y);
         virtual ~SGDpp();
         void run_sgd();
         double find_error(int epoch);
         unsigned int n_datapoints;
+        std::string outfile;
     private:
         int latent_factors;
         int n_users;
         int n_movies;
         double lambda;
+        double lambdaY;
         double learn_rate;
         double global_mean;
         std::vector<double> user_vec;
