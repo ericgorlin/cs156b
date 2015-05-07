@@ -15,6 +15,7 @@ class SGDpp
         double find_error(int epoch);
         unsigned int n_datapoints;
         std::string outfile;
+        std::string outfileProbe;
     private:
         int latent_factors;
         int n_users;
@@ -41,6 +42,7 @@ class SGDpp
 
 
         void create_file();
+        void create_probe_file();
 };
 
 #endif // SGD_H

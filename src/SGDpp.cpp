@@ -8,9 +8,11 @@
 
 int main() {
     //SGDpp sgd(100, 0.005, 0.007, 0.015); 4.4%
-    //SGDpp sgd(100, 0.008, 0.007, 0.02);  4.65% .905 probe
+    SGDpp sgd(100, 0.008, 0.007, 0.02);  //4.65% .905 probe
     // here started reverting to older u + v when increased error
-    SGDpp sgd(100, 0.02, 0.007, 0.02);
+    //SGDpp sgd(100, 0.02, 0.007, 0.02); worse
+    //SGDpp sgd(75, 0.008, 0.007, 0.02);
+    //SGDpp sgd(150, 0.008, 0.007, 0.02);
     std::cout << "Done loading\n";
     sgd.run_sgd();
     
@@ -19,7 +21,8 @@ int main() {
 SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
 {
     bool testingOnProbe = false; // change this in LoadData2.cpp as well
-    outfile = "SGDpp_results6.txt";
+    outfile = "SGDpp_results8.txt";
+    outfileProbe = "SGDpp_probe8.txt";
 
 
     // Set the number of latent factors, users, and movies
@@ -31,8 +34,6 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
         n_datapoints = 1374739;
     else
         n_datapoints = 98291669;
-    //n_users = 5;
-    //n_movies = 17754;
     lambda = lambda_val;
     lambdaY = lambda_y;
 
@@ -190,7 +191,7 @@ void SGDpp::run_sgd()
     for (int i = 0; i < latent_factors; i++)
             tempSumY[i] = 0.0;
 
-    for (unsigned int epoch = 1; epoch < 51; epoch++) {
+    for (unsigned int epoch = 1; epoch < 41; epoch++) {
 
         std::cout << "New epoch " << epoch << std::endl;
 
@@ -288,13 +289,15 @@ void SGDpp::run_sgd()
         std::cout << "RMSE: " << new_error << std::endl;
         std::cout << "Old error: " << old_error << std::endl;
         if (new_error + .0001 >= old_error && epoch > 5) {
-            if (new_error > old_error) {
-                u = prev_u;
-                v = prev_v;
-            }
+      //      if (new_error > old_error) {
+      //          u = prev_u;
+      //          v = prev_v;
+      //      }
             break;
         }
         old_error = new_error;
+     //   prev_u = u;
+     //   prev_v = v;
 
 
         lr *= 0.9; // make this a variable
@@ -303,11 +306,12 @@ void SGDpp::run_sgd()
 
     delete[] tempSumY;
     create_file();
+    create_probe_file();
     
     cout << ((double)clock() - begin) / CLOCKS_PER_SEC / 60. << " minutes to learn" << endl;
 
-    delete[] prev_u;
-    delete[] prev_v;
+//    delete[] prev_u;
+//    delete[] prev_v;
 }
 
 // Find the test error on the probe data set.
@@ -359,10 +363,6 @@ void SGDpp::create_file()
         int user = qual[0][i] - 1;
         int movie = qual[1][i] - 1;
 //        if (c < 7) {
-//            cout << "here we go" << endl;
-//            cout << user << " " << movie << endl;
-//            cout << user_avg[user] << " " << movie_avg[movie] << endl;
-//            cout << u[user][0] << " " << v[movie][0] << endl;
 //        }
 
         //double predicted = user_vec[user] - global_mean + movie_vec[movie];
@@ -375,6 +375,29 @@ void SGDpp::create_file()
 
     }
     //myfile1.close();
+}
+
+// Create an output file using the u and v matrices we found and the qual
+// data
+void SGDpp::create_probe_file()
+{
+    ofstream myfile1;
+    myfile1.open(outfileProbe);
+    cout << "Creating output file" << endl;
+    int c = 0;
+    
+    for (unsigned int i = 0; i < 1374739; ++i)
+    {
+        int user = probe[0][i] - 1;
+        int movie = probe[1][i] - 1;
+
+        double predicted = SGDpp::estimateRating(user, movie);
+        
+        c += 1;
+        
+        myfile1 << predicted << "\n";
+        
+    }
 }
 
 double SGDpp::estimateRating(int user, int movie) {
