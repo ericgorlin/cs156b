@@ -8,11 +8,17 @@
 
 int main() {
     //SGDpp sgd(100, 0.005, 0.007, 0.015); 4.4%
-    SGDpp sgd(100, 0.008, 0.007, 0.02);  //4.65% .905 probe
-    // here started reverting to older u + v when increased error
+    //SGDpp sgd(100, 0.008, 0.007, 0.02);  //4.65% .905 probe
     //SGDpp sgd(100, 0.02, 0.007, 0.02); worse
-    //SGDpp sgd(75, 0.008, 0.007, 0.02);
-    //SGDpp sgd(150, 0.008, 0.007, 0.02);
+    //SGDpp sgd(75, 0.008, 0.007, 0.02); 4.58%
+    //SGDpp sgd(150, 0.008, 0.007, 0.02); 4.77
+    //SGDpp sgd(100, 0.01, 0.007, 0.025); 4.77 (file 10)
+    //SGDpp sgd(150, 0.008, 0.007, 0.02); 4.78 (file 11)
+    //SGDpp sgd(100, 0.01, 0.01, 0.02); 4.82 (file 12)
+    //SGDpp sgd(150, 0.012, 0.01, 0.02); 5.01 (file 13)
+    //SGDpp sgd(150, 0.016, 0.01, 0.02); 4.95 (file 14)
+    SGDpp sgd(200, 0.012, 0.01, 0.02);
+    
     std::cout << "Done loading\n";
     sgd.run_sgd();
     
@@ -21,8 +27,8 @@ int main() {
 SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
 {
     bool testingOnProbe = false; // change this in LoadData2.cpp as well
-    outfile = "SGDpp_results8.txt";
-    outfileProbe = "SGDpp_probe8.txt";
+    outfile = "SGDpp_results15.txt";
+    outfileProbe = "SGDpp_probe15.txt";
 
 
     // Set the number of latent factors, users, and movies
@@ -40,18 +46,19 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
     // Create a normal distribution to sample random numbers from
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> d(0, 0.01);//(0.1, 0.04);
+    std::normal_distribution<> d(0, 0.01);
 
     // Create the U and V matrices based on these parameters
     // Randomly initialize all values
     u = 0;
     u = new double*[n_users];
+    prev_u = 0;
+    prev_u = new double*[n_users];
     for (unsigned int i = 0; i < n_users; ++i)
     {
         u[i] = new double[latent_factors];
 
         for (unsigned int j = 0; j < latent_factors; ++j)
-            //u[i][j] = .1;
             u[i][j] = d(gen);
     }
 
@@ -62,8 +69,22 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
         v[i] = new double[latent_factors];
 
         for (unsigned int j = 0; j < latent_factors; ++j)
-            //v[i][j] = .1;
             v[i][j] = d(gen);
+    }
+    
+    
+    prev_u = 0;
+    prev_u = new double*[n_users];
+    for (unsigned int i = 0; i < n_users; ++i)
+    {
+        u[i] = new double[latent_factors];
+    }
+    
+    prev_v = 0;
+    prev_v = new double*[n_movies];
+    for (unsigned int i = 0; i < n_movies; ++i)
+    {
+        prev_v[i] = new double[latent_factors];
     }
 
     l = new LoadData2();
@@ -268,7 +289,7 @@ void SGDpp::run_sgd()
                 }
             }
             if(i % (n_datapoints / 10) == 1) {
-                if (countTo10 != 0) {
+                if (countTo10 != 0 && countTo10 != 10) {
                     cout << ((double)clock() - begin2) / CLOCKS_PER_SEC / 60. << " minute chunk ";
                     cout << countTo10 << "/10 done, ETA = " <<
                     ((double)clock() - begin2) / CLOCKS_PER_SEC / 60. * (n_datapoints - i) / (n_datapoints / 10 + 1) << " minutes" << endl;
@@ -289,15 +310,38 @@ void SGDpp::run_sgd()
         std::cout << "RMSE: " << new_error << std::endl;
         std::cout << "Old error: " << old_error << std::endl;
         if (new_error + .0001 >= old_error && epoch > 5) {
-      //      if (new_error > old_error) {
-      //          u = prev_u;
-      //          v = prev_v;
-      //      }
+            if (new_error > old_error) {
+                // update prev_u and prev_v
+                for (unsigned int i = 0; i < n_users; ++i)
+                {
+                    for (unsigned int j = 0; j < latent_factors; ++j)
+                        u[i][j] = prev_u[i][j];
+                }
+                for (unsigned int i = 0; i < n_movies; ++i)
+                {
+                    for (unsigned int j = 0; j < latent_factors; ++j)
+                        v[i][j] = prev_v[i][j];
+                }
+            }
             break;
         }
         old_error = new_error;
-     //   prev_u = u;
-     //   prev_v = v;
+        
+        // update prev_u and prev_v
+        for (unsigned int i = 0; i < n_users; ++i)
+        {
+            u[i] = new double[latent_factors];
+            
+            for (unsigned int j = 0; j < latent_factors; ++j)
+                prev_u[i][j] = u[i][j];
+        }
+        for (unsigned int i = 0; i < n_movies; ++i)
+        {
+            u[i] = new double[latent_factors];
+            
+            for (unsigned int j = 0; j < latent_factors; ++j)
+                prev_v[i][j] = v[i][j];
+        }
 
 
         lr *= 0.9; // make this a variable
@@ -310,8 +354,8 @@ void SGDpp::run_sgd()
     
     cout << ((double)clock() - begin) / CLOCKS_PER_SEC / 60. << " minutes to learn" << endl;
 
-//    delete[] prev_u;
-//    delete[] prev_v;
+    delete[] prev_u;
+    delete[] prev_v;
 }
 
 // Find the test error on the probe data set.

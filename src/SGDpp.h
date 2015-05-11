@@ -30,6 +30,8 @@ class SGDpp
         LoadData2 *l;
         double **u;
         double **v;
+        double **prev_u;
+        double **prev_v;
         double **data;
         double **probe;
         double *user_avg;
