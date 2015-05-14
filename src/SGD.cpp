@@ -1,4 +1,4 @@
-#include "SGD.h"
+#include "SGD2.h"
 #include "LoadData.h"
 #include "Average.h"
 #include <ctime>
@@ -12,6 +12,8 @@ SGD::SGD(int lf, double lambda_val, double lr)
     learn_rate = lr;
     n_users = 458293;
     n_movies = 17770;
+    outfile1 = "sgd_results1.txt";
+    outprobe = "sgd_probe1.txt";
     //n_users = 5;
     //n_movies = 17754;
     lambda = lambda_val;
@@ -182,14 +184,33 @@ void SGD::create_file(arma::mat u, arma::mat v)
     }
     myfile1.close();
 }
-/*
+
+// Create an output file using the u and v matrices we found and the qual
+// data
+void SGD2::create_probe_file()
+{
+    ofstream myfile1;
+    myfile1.open(outfileProbe);
+    cout << "Creating output file" << endl;
+    int c = 0;
+
+    for (unsigned int i = 0; i < 1374739; ++i)
+    {
+        int user = probe[0][i] - 1;
+        int movie = probe[1][i] - 1;
+
+        double predicted = SGDpp::estimateRating(user, movie);
+
+        c += 1;
+
+        myfile1 << predicted << "\n";
+
+    }
+}
+
 int main() {
     SGD sgd(30, 0.02, 0.001); // remember to have learning rate divided by number of epochs
     std::cout << "done loading\n";
     sgd.run_sgd();
-
-
 }
 
-
-*/

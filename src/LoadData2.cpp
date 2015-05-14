@@ -21,8 +21,10 @@ LoadData2::LoadData2()
     n_movies = 17770;
     if (testingOnProbe)
         n_datapoints = 1374739;
-    else
+    else {
         n_datapoints = 98291669;
+        std::cout << "train 4 lyfe";
+    }
     // Training set has 98291669 values
     data = 0;
     data = new double*[3];
@@ -38,9 +40,9 @@ LoadData2::LoadData2()
     string line;
     string filename;
     if (testingOnProbe) {
-        filename = "../um/probe.dta";
+        filename = "src/um/probe.dta";
     } else {
-        filename = "../um/train.dta";
+        filename = "src/um/train.dta";
     }
     ifstream myfile(filename.c_str());
 
@@ -127,7 +129,7 @@ double **LoadData2::probe()
 
     // Open the file
     string line;
-    ifstream myfile("../um/probe.dta");
+    ifstream myfile("src/um/probe.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;
@@ -165,7 +167,7 @@ double **LoadData2::qual()
 
     // Open the file
     string line;
-    ifstream myfile("../um/qual.dta");
+    ifstream myfile("src/um/qual.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;
@@ -226,7 +228,7 @@ double LoadData2::getMovieStddev(int movieIdx)
 
 double LoadData2::getGlobalMean()
 {
-    return sumRatings / totalMovies;
+    return (1.0 * sumRatings) / totalMovies;
 }
 
 std::vector<double> LoadData2::getBetterUserMean()
