@@ -17,7 +17,10 @@ int main() {
     //SGDpp sgd(100, 0.01, 0.01, 0.02); 4.82 (file 12)
     //SGDpp sgd(150, 0.012, 0.01, 0.02); 5.01 (file 13)
     //SGDpp sgd(150, 0.016, 0.01, 0.02); 4.95 (file 14)
-    SGDpp sgd(200, 0.012, 0.01, 0.02);
+    //SGDpp sgd(200, 0.012, 0.01, 0.02); 5.06 (file 15)
+    //SGDpp sgd(200, 0.012, 0.01, 0.024); 5.07 (file 16)
+    //SGDpp sgd(200, 0.012, 0.01, 0.016); 5.07 (file 17)
+    //SGDpp sgd(150, 0.06, 0.01, 0.1); 2.41 (file 18)
     
     std::cout << "Done loading\n";
     sgd.run_sgd();
@@ -27,8 +30,8 @@ int main() {
 SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
 {
     bool testingOnProbe = false; // change this in LoadData2.cpp as well
-    outfile = "SGDpp_results15.txt";
-    outfileProbe = "SGDpp_probe15.txt";
+    outfile = "SGDpp_results18.txt";
+    outfileProbe = "SGDpp_probe18.txt";
 
 
     // Set the number of latent factors, users, and movies
