@@ -18,13 +18,13 @@ SGD2::SGD2(int lf, double lambda_val, double lr, double lambda2, double lr2)
     lambda = lambda_val;
     lambda_avg = lambda2;
     learn_rate_avg = lr2;
-    outfile = "sgd_results15.txt";
-    outprobe = "sgd_probe15.txt";
+    outfile = "sgd_results26.txt";
+    outprobe = "sgd_probe26.txt";
 
     // Create a normal distribution to sample random numbers from
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> d(0,.05);
+    std::normal_distribution<> d(0,.01);
     srand (static_cast <unsigned> (time(0)));
 
     // Create the U and V matrices based on these parameters
@@ -368,21 +368,24 @@ int main() {
     error = sgd.run_sgd();
     myfile1 << "120 .012 .005 .00001 .005 " << error << endl;
     */
-    //SGD2 sgd2(120, .012, .005, .001, .001); //.911506    1
-    //SGD2 sgd2(120, .015, .007, .001, .001); // .914145    2
+    //SGD2 sgd2(120, .012, .005, .001, .001); //.911506    1    .904275 18
+    //SGD2 sgd2(120, .015, .007, .001, .001); // .914145    2    .906024 19
     //SGD2 sgd2(120, .012, .006, .001, .001); // .912915    3
     //SGD2 sgd2(120, .012, .005, .0009, .0009); // .911835   4
-    //SGD2 sgd2(50, .01, .005, .001, .001); // .911275    5
+    //SGD2 sgd2(50, .01, .005, .001, .001); // .911275    5          .907234 20
     //SGD2 sgd2(100, .01, .005, .001, .001); // .912609    6
    // SGD2 sgd2(30, .008, .005, .001, .001); // .912609    7
     //SGD2 sgd2(120, .011, .004, .001, .001); // .911411    8
     //SGD2 sgd2(300, .015, .007, .001, .001);  // .914979    9
-    //SGD2 sgd2(300, .012, .005, .001, .001);  // .913362    10
+    //SGD2 sgd2(300, .012, .005, .001, .001);  // .913362    10   /902195 24
+    SGD2 sgd2(400, .012, .005, .001, .001);  // .90Ŕ653    26
     //SGD2 sgd2(300, .01, .004, .001, .001); // .914953 11
-    //SGD2 sgd2(200, .012, .005, .001, .001); // .912804     12
-    //SGD2 sgd2(150, .012, .005, .001, .001); // .911957    13
-    //SGD2 sgd2(80, .013, .0045, .001, .001); // .909817    14
-    SGD2 sgd2(113, .013, .00465, .001, .001);
+    //SGD2 sgd2(200, .012, .005, .001, .001); // .912804     12      .902853 21
+    //SGD2 sgd2(150, .012, .005, .001, .001); // .911957    13       .903853 22
+    //SGD2 sgd2(80, .013, .0045, .001, .001); // .909817    14    // .904565
+    //SGD2 sgd2(113, .013, .00465, .001, .001);
+    //SGD2 sgd2(10, .01, .005, .001, .001); // .919 16       // .9   18578 24
+    //SGD2 sgd2(400, .01, .005, .001, .001); // .916 17
     error = sgd2.run_sgd();
     //myfile1 << "100 .01 .005 .001 .001 " << error << endl;
     /*
