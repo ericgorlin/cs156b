@@ -218,7 +218,7 @@ std::vector<unsigned int> KNN::getUsersOfMovie(unsigned int movie)
     return usersVec;
 }
 
-uint8_t KNN::calculatePearson(PearsonIntermediate pi)
+unsigned short KNN::calculatePearson(PearsonIntermediate pi)
 {
     double val = 1.0 * (pi.cnt * pi.xy - pi.x * pi.y) / (sqrt(pi.xx * pi.cnt - pi.x * pi.x) * sqrt(pi.yy * pi.cnt - pi.y * pi.y));
     if (std::isnan(val))
@@ -232,16 +232,17 @@ uint8_t KNN::calculatePearson(PearsonIntermediate pi)
         if (val2 < 0)
             return 0;
         else
-            return static_cast<uint8_t> (val2 * 255 + 0.5); //return round(val2 * 255);
+            return static_cast<unsigned short> (val2 * 65535 + 0.5);
     }
 
 }
 
-std::vector<uint8_t> KNN::getCorrelations(unsigned int movie)
+std::vector<unsigned short> KNN::getCorrelations(unsigned int movie)
 {
     //clock_t begin1 = clock();
-    PearsonIntermediate *corrArr = new PearsonIntermediate[17770];
-    std::vector<uint8_t> allCorrelations;
+    //PearsonIntermediate *corrArr = new PearsonIntermediate[17770];
+    PearsonIntermediate corrArr[17770];
+    std::vector<unsigned short> allCorrelations;
     allCorrelations.reserve(17770);
     //clock_t begin2 = clock();
     //double elapsed_min1 = double(begin2 - begin1) / CLOCKS_PER_SEC;
@@ -266,25 +267,19 @@ std::vector<uint8_t> KNN::getCorrelations(unsigned int movie)
         for (auto & otherMovie : getMoviesOfUser(userIdx)) //std::vector<unsigned int>::iterator it2 = movieVec.begin(); it2 != movieVec.end(); ++it2)
         {
             // update the PearsonIntermediate struct
-            //clock_t begin3 = clock();
             unsigned int movieRating = getRating(userIdx, movie);
             //clock_t begin333 = clock();
             unsigned int otherMovieRating = getRating(userIdx, otherMovie);
             //clock_t begin3333 = clock();
             PearsonIntermediate currentPI = corrArr[otherMovie - 1];
-            double x = currentPI.x + movieRating;
-            double y = currentPI.y + otherMovieRating;
-            double xy = currentPI.xy + movieRating * otherMovieRating;
-            double xx = currentPI.xx + movieRating * movieRating;
-            double yy = currentPI.yy + otherMovieRating * otherMovieRating;
-            unsigned int cnt = currentPI.cnt + 1;
             PearsonIntermediate newPI;
-            newPI.x = x;
-            newPI.y = y;
-            newPI.xy = xy;
-            newPI.xx = xx;
-            newPI.yy = yy;
-            newPI.cnt = cnt;
+            newPI.x = currentPI.x + movieRating;
+            newPI.y = currentPI.y + otherMovieRating;
+            newPI.xy = currentPI.xy + movieRating * otherMovieRating;
+            newPI.xx = currentPI.xx + movieRating * movieRating;
+            newPI.yy = currentPI.yy + otherMovieRating * otherMovieRating;
+            newPI.cnt = currentPI.cnt + 1;
+
             corrArr[otherMovie - 1] = newPI;
             //clock_t begin4 = clock();
             //double elapsed_min3 = double(begin4 - begin3333) / CLOCKS_PER_SEC;
@@ -298,7 +293,6 @@ std::vector<uint8_t> KNN::getCorrelations(unsigned int movie)
     }
     //clock_t end1 = clock();
     //double elapsed_total = double(end1 - begin1) / CLOCKS_PER_SEC;
-    //std::cout << "total get movies time " << totalGetMoviesTime << std::endl;
     //std::cout << "total movie rating time " << totalGetMovie << std::endl;
     //std::cout << "total other movie rating time " << totalGetOther << std::endl;
     //std::cout << "inner loop without sparse took " << totalInnerLoopMinusSparse << std::endl;
@@ -306,8 +300,8 @@ std::vector<uint8_t> KNN::getCorrelations(unsigned int movie)
     //clock_t begin5 = clock();
     for (unsigned int i = 0; i < 17770; ++i)
     {
-        uint8_t corr = calculatePearson(corrArr[i]);
-        allCorrelations.push_back(corr);
+        //uint8_t corr = ;
+        allCorrelations[i] = calculatePearson(corrArr[i]);
     }
     //clock_t end2 = clock();
     //double elapsed_min3 = double(end2 - begin5) / CLOCKS_PER_SEC;
@@ -322,20 +316,22 @@ int main()
     //LoadData2 *l2 = k.getLD();
 
     clock_t t1 = clock();
-    std::vector<uint8_t> corrArr1 = k.getCorrelations(1);
+    std::vector<unsigned short> corrArr1 = k.getCorrelations(1);
     clock_t t2 = clock();
-    std::vector<uint8_t> corrArr2 = k.getCorrelations(2);
+    std::vector<unsigned short> corrArr2 = k.getCorrelations(2);
     clock_t t3 = clock();
     double elapsed1 = double(t2 - t1) / CLOCKS_PER_SEC;
     double elapsed2 = double(t3 - t2) / CLOCKS_PER_SEC;
     std::cout << "movie 1 " << elapsed1 << std::endl;
     std::cout << "movie 2 " << elapsed2 << std::endl;
+    std::cout << (static_cast<double> (corrArr1[0])) / 65535.0 << " " << (static_cast<double> (corrArr1[1])) / 65535.0 << " " << (static_cast<double> (corrArr1[2])) / 65535.0 << std::endl;
+    std::cout << (static_cast<double> (corrArr2[0])) / 65535.0 << " " << (static_cast<double> (corrArr2[1])) / 65535.0 << " " << (static_cast<double> (corrArr2[2])) / 65535.0 << std::endl;
     std::cout << "writing to file now" << std::endl;
     ofstream outfile;
     outfile.open("src/movieCorrelationMatrix.txt");
     for (unsigned int i = 0; i < 17770; i++)
     {
-        std::vector<uint8_t> corrArr = k.getCorrelations(i + 1);
+        std::vector<unsigned short> corrArr = k.getCorrelations(i + 1);
         outfile << i + 1 << " "; // write movie index
         for (auto& j : corrArr)
         {
