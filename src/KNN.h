@@ -43,8 +43,8 @@ class KNN
         //std::vector<double> normalizeMovie(unsigned int movie);
         std::vector<unsigned int> getMoviesOfUser(unsigned int user);
         std::vector<unsigned int> getUsersOfMovie(unsigned int movie);
-        uint8_t calculatePearson(PearsonIntermediate pi);
-        std::vector<uint8_t> getCorrelations(unsigned int movie);
+        unsigned short calculatePearson(PearsonIntermediate pi);
+        std::vector<unsigned short> getCorrelations(unsigned int movie);
         virtual ~KNN();
         LoadData2 *getLD();
         int getUserMean();
