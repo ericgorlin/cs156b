@@ -324,18 +324,20 @@ int main()
     double elapsed2 = double(t3 - t2) / CLOCKS_PER_SEC;
     std::cout << "movie 1 " << elapsed1 << std::endl;
     std::cout << "movie 2 " << elapsed2 << std::endl;
+    std::cout << "size of vector1 is " << corrArr1.size() << std::endl;
+    std::cout << "size of vector2 is " << corrArr2.size() << std::endl;
     std::cout << (static_cast<double> (corrArr1[0])) / 65535.0 << " " << (static_cast<double> (corrArr1[1])) / 65535.0 << " " << (static_cast<double> (corrArr1[2])) / 65535.0 << std::endl;
     std::cout << (static_cast<double> (corrArr2[0])) / 65535.0 << " " << (static_cast<double> (corrArr2[1])) / 65535.0 << " " << (static_cast<double> (corrArr2[2])) / 65535.0 << std::endl;
     std::cout << "writing to file now" << std::endl;
     ofstream outfile;
-    outfile.open("src/movieCorrelationMatrix.txt");
-    for (unsigned int i = 0; i < 17770; i++)
+    outfile.open("src/movieCorrelationMatrix5.txt");
+    for (unsigned int i = 0; i < 17770; ++i)
     {
         std::vector<unsigned short> corrArr = k.getCorrelations(i + 1);
         outfile << i + 1 << " "; // write movie index
-        for (auto& j : corrArr)
+        for (unsigned int j = 0; j < 17770; ++j)
         {
-            outfile << j << " "; // write correlations
+            outfile << corrArr[j] << " "; // write correlations
         }
         outfile << "\n";
         if (i % 1000 == 0)

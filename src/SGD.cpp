@@ -219,7 +219,7 @@ void SGD::create_file(arma::mat u, arma::mat v)
     }
     myfile1.close();
 }
-
+/*
 int main() {
     SGD sgd(30, 0.02, 0.001); // remember to have learning rate divided by number of epochs
     std::cout << "done loading\n";
@@ -227,5 +227,5 @@ int main() {
 
 
 }
-
+*/
 
