@@ -1,11 +1,10 @@
 #ifndef QUIZBLEND_H
 #define QUIZBLEND_H
 #include <armadillo>
-//#include <ifstream>
+#include <ifstream>
 #include <iostream>
 #include <fstream>
-#include <string>
-//#include <ofstream>
+#include <ofstream>
 
 
 
@@ -19,7 +18,6 @@ class QuizBlend
     private:
         arma::mat ratings;
         double variance;
-        double mean;
         std::vector<double> rmse;
         double qual_size;
         double n;
