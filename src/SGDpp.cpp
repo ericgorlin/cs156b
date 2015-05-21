@@ -23,7 +23,9 @@ int main() {
     //SGDpp sgd(150, 0.06, 0.01, 0.1); 2.41 (file 18)
     //SGDpp sgd(200, 0.012, 0.015, 0.02); 4.76 (file 19)
     //SGDpp sgd(250, 0.012, 0.01, 0.02); 5.12 (file 20)
-    SGDpp sgd(400, 0.012, 0.01, 0.02);
+    
+    // using all now
+    SGDpp sgd(150, 0.012, 0.01, 0.02); // All file 1, from file 13, 17 epochs
     
     std::cout << "Done loading\n";
     sgd.run_sgd();
@@ -33,8 +35,8 @@ int main() {
 SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
 {
     bool testingOnProbe = false; // change this in LoadData2.cpp as well
-    outfile = "SGDpp_results21.txt";
-    outfileProbe = "SGDpp_probe21.txt";
+    outfile = "SGDpp_resultsAll_1.txt";
+    outfileProbe = "SGDpp_probeAll_1.txt";
 
 
     // Set the number of latent factors, users, and movies
@@ -45,7 +47,7 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
     if (testingOnProbe)
         n_datapoints = 1374739;
     else
-        n_datapoints = 98291669;
+        n_datapoints = 99666408;//98291669;
     lambda = lambda_val;
     lambdaY = lambda_y;
 
@@ -219,7 +221,7 @@ void SGDpp::run_sgd()
     for (int i = 0; i < latent_factors; i++)
             tempSumY[i] = 0.0;
 
-    for (unsigned int epoch = 1; epoch < 41; epoch++) {
+    for (unsigned int epoch = 1; epoch < 18; epoch++) {
 
         std::cout << "New epoch " << epoch << std::endl;
 
@@ -313,6 +315,8 @@ void SGDpp::run_sgd()
         // Find the error for the new values
         new_error = find_error(epoch);
 
+        
+        /*
         // If there's no decrease in error, stop.
         std::cout << "RMSE: " << new_error << std::endl;
         std::cout << "Old error: " << old_error << std::endl;
@@ -332,7 +336,7 @@ void SGDpp::run_sgd()
             }
             break;
         }
-        old_error = new_error;
+
         
         // update prev_u and prev_v
         for (unsigned int i = 0; i < n_users; ++i)
@@ -348,7 +352,8 @@ void SGDpp::run_sgd()
             
             for (unsigned int j = 0; j < latent_factors; ++j)
                 prev_v[i][j] = v[i][j];
-        }
+        }*/
+        old_error = new_error;
 
 
         lr *= 0.9; // make this a variable
