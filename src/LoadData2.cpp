@@ -21,11 +21,10 @@ LoadData2::LoadData2()
     n_movies = 17770;
     if (testingOnProbe)
         n_datapoints = 1374739;
-    else {
-        n_datapoints = 99666408;
-        //n_datapoints = 98291669;
-        std::cout << "train 4 lyfe";
-    }
+
+    else
+        n_datapoints = 99666408;//98291669;
+
     // Training set has 98291669 values
     data = 0;
     data = new double*[3];
@@ -44,6 +43,7 @@ LoadData2::LoadData2()
         filename = "../src/um/probe.dta";
     } else {
         filename = "../src/um/trainprobe.dta";
+
     }
     ifstream myfile(filename.c_str());
 

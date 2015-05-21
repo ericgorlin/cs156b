@@ -18,16 +18,20 @@ int main() {
     //SGDpp sgd(100, 0.01, 0.01, 0.02); 4.82 (file 12)
     //SGDpp sgd(150, 0.012, 0.01, 0.02); 5.01 (file 13)
     //SGDpp sgd(150, 0.016, 0.01, 0.02); 4.95 (file 14)
-<<<<<<< HEAD
     SGDpp sgd(200, 0.012, 0.01, 0.02);
 
-=======
     //SGDpp sgd(200, 0.012, 0.01, 0.02); 5.06 (file 15)
     //SGDpp sgd(200, 0.012, 0.01, 0.024); 5.07 (file 16)
     //SGDpp sgd(200, 0.012, 0.01, 0.016); 5.07 (file 17)
     //SGDpp sgd(150, 0.06, 0.01, 0.1); 2.41 (file 18)
-    
->>>>>>> 470c4ef82342e4a9a69656221580d3169439604f
+    //SGDpp sgd(200, 0.012, 0.015, 0.02); 4.76 (file 19)
+    //SGDpp sgd(250, 0.012, 0.01, 0.02); 5.12 (file 20)
+
+    // using all now
+    //SGDpp sgd(150, 0.012, 0.01, 0.02); // All file 1, from file 13, 17 epochs. 5.00
+    SGDpp sgd(200, 0.012, 0.01, 0.016); // All file 2, from file 17, 21 epochs.
+
+
     std::cout << "Done loading\n";
     sgd.run_sgd();
 
@@ -37,8 +41,8 @@ int main() {
 SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
 {
     bool testingOnProbe = false; // change this in LoadData2.cpp as well
-    outfile = "SGDpp_results18.txt";
-    outfileProbe = "SGDpp_probe18.txt";
+    outfile = "SGDpp_resultsAll_2.txt";
+    outfileProbe = "SGDpp_probeAll_2.txt";
 
 
     // Set the number of latent factors, users, and movies
@@ -49,7 +53,7 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
     if (testingOnProbe)
         n_datapoints = 1374739;
     else
-        n_datapoints = 98291669;
+        n_datapoints = 99666408;//98291669;
     lambda = lambda_val;
     lambdaY = lambda_y;
 
@@ -118,12 +122,13 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
     }
 
     sumY = new double*[n_users];
+
     for (unsigned int i = 0; i < n_users; ++i)
     {
         sumY[i] = new double[lf];
 
         for (unsigned int j = 0; j < lf; ++j) {
-            sumY[i][j] = 0;
+            sumY[i][j] = 0.0;
         }
 
         set<int>::iterator it;
@@ -222,7 +227,7 @@ void SGDpp::run_sgd()
     for (int i = 0; i < latent_factors; i++)
             tempSumY[i] = 0.0;
 
-    for (unsigned int epoch = 1; epoch < 41; epoch++) {
+    for (unsigned int epoch = 1; epoch < 21; epoch++) {
 
         std::cout << "New epoch " << epoch << std::endl;
 
@@ -316,9 +321,12 @@ void SGDpp::run_sgd()
         // Find the error for the new values
         new_error = find_error(epoch);
 
+
+
         // If there's no decrease in error, stop.
         std::cout << "RMSE: " << new_error << std::endl;
         std::cout << "Old error: " << old_error << std::endl;
+
         if (new_error + .0001 >= old_error && epoch > 5) {
             if (new_error > old_error) {
                 // update prev_u and prev_v
@@ -335,7 +343,9 @@ void SGDpp::run_sgd()
             }
             break;
         }
+
         old_error = new_error;
+
 
         // update prev_u and prev_v
         for (unsigned int i = 0; i < n_users; ++i)
@@ -352,6 +362,7 @@ void SGDpp::run_sgd()
             for (unsigned int j = 0; j < latent_factors; ++j)
                 prev_v[i][j] = v[i][j];
         }
+        old_error = new_error;
 
 
         lr *= 0.9; // make this a variable
