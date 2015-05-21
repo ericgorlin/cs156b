@@ -22,7 +22,7 @@ LoadData2::LoadData2()
     if (testingOnProbe)
         n_datapoints = 1374739;
     else
-        n_datapoints = 98291669;
+        n_datapoints = 99666408;//98291669;
     // Training set has 98291669 values
     data = 0;
     data = new double*[3];
@@ -40,7 +40,7 @@ LoadData2::LoadData2()
     if (testingOnProbe) {
         filename = "../um/probe.dta";
     } else {
-        filename = "../um/train.dta";
+        filename = "../um/trainprobe.dta";//train.dta";
     }
     ifstream myfile(filename.c_str());
 

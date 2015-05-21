@@ -25,7 +25,8 @@ int main() {
     //SGDpp sgd(250, 0.012, 0.01, 0.02); 5.12 (file 20)
     
     // using all now
-    SGDpp sgd(150, 0.012, 0.01, 0.02); // All file 1, from file 13, 17 epochs
+    //SGDpp sgd(150, 0.012, 0.01, 0.02); // All file 1, from file 13, 17 epochs. 5.00
+    SGDpp sgd(200, 0.012, 0.01, 0.016); // All file 2, from file 17, 21 epochs.
     
     std::cout << "Done loading\n";
     sgd.run_sgd();
@@ -35,8 +36,8 @@ int main() {
 SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
 {
     bool testingOnProbe = false; // change this in LoadData2.cpp as well
-    outfile = "SGDpp_resultsAll_1.txt";
-    outfileProbe = "SGDpp_probeAll_1.txt";
+    outfile = "SGDpp_resultsAll_2.txt";
+    outfileProbe = "SGDpp_probeAll_2.txt";
 
 
     // Set the number of latent factors, users, and movies
@@ -221,7 +222,7 @@ void SGDpp::run_sgd()
     for (int i = 0; i < latent_factors; i++)
             tempSumY[i] = 0.0;
 
-    for (unsigned int epoch = 1; epoch < 18; epoch++) {
+    for (unsigned int epoch = 1; epoch < 21; epoch++) {
 
         std::cout << "New epoch " << epoch << std::endl;
 
@@ -316,10 +317,11 @@ void SGDpp::run_sgd()
         new_error = find_error(epoch);
 
         
-        /*
+        
         // If there's no decrease in error, stop.
         std::cout << "RMSE: " << new_error << std::endl;
         std::cout << "Old error: " << old_error << std::endl;
+        /*
         if (new_error + .0001 >= old_error && epoch > 5) {
             if (new_error > old_error) {
                 // update prev_u and prev_v
