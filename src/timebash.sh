@@ -1,7 +1,4 @@
-#!/bin/sh
+#!/bin/csh
 
-#  timebash.sh
-#  
-#
-#  Created by Megan Keehan on 5/14/15.
-#
+g++ -Wall -g -std=c++11 TimeSVDpp.cpp LoadData3.cpp -o runstuff
+./runstuff
