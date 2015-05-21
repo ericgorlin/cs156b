@@ -18,8 +18,8 @@ SGD2::SGD2(int lf, double lambda_val, double lr, double lambda2, double lr2)
     lambda = lambda_val;
     lambda_avg = lambda2;
     learn_rate_avg = lr2;
-    outfile = "sgd_results26.txt";
-    outprobe = "sgd_probe26.txt";
+    outfile = "sgd_results21probeinc.txt";
+    outprobe = "sgd_probe21probeinc.txt";
 
     // Create a normal distribution to sample random numbers from
     std::random_device rd;
@@ -54,9 +54,12 @@ SGD2::SGD2(int lf, double lambda_val, double lr, double lambda2, double lr2)
     l = new LoadData2();
     y = 0;
     y = new double*[3];
-    y[0] = new double[98291669];
-    y[1] = new double[98291669];
-    y[2] = new double[98291669];
+    //y[0] = new double[98291669];
+    //y[1] = new double[98291669];
+    //y[2] = new double[98291669];
+    y[0] = new double[99666408];
+    y[1] = new double[99666408];
+    y[2] = new double[99666408];
     y = l->loadRatingsVector();
     std::cout << "checkpoint 1" << std::endl;
 
@@ -73,7 +76,6 @@ SGD2::SGD2(int lf, double lambda_val, double lr, double lambda2, double lr2)
 
     //user_vec = l->getBetterUserMean();
     //movie_vec = l->getBetterMovieMean();
-
     clock_t end = clock();
     double elapsed_min = double(end - begin) / CLOCKS_PER_SEC / 60;
     cout << elapsed_min << " minutes to get ratings" << endl;
@@ -135,7 +137,7 @@ double SGD2::run_sgd()
     double vval;
     oldu = new double[n_users];
 
-    for (unsigned int epoch = 1; epoch < 75; epoch++) {
+    for (unsigned int epoch = 1; epoch < 15; epoch++) {
         clock_t begin = 0;
 
         std::cout << "New epoch " << epoch << std::endl;
@@ -149,7 +151,8 @@ double SGD2::run_sgd()
 
         // Iterate through data points
         //#pragma omp parallel for
-        for (unsigned int i = 0; i < 98291669; i++) { //< y.n_cols
+        //for (unsigned int i = 0; i < 98291669; i++) { //< y.n_cols
+        for (unsigned int i = 0; i < 99666408; ++i) {
             rating = y[2][i];
             user = y[0][i] - 1;
             movie = y[1][i] - 1;
@@ -368,7 +371,7 @@ int main() {
     error = sgd.run_sgd();
     myfile1 << "120 .012 .005 .00001 .005 " << error << endl;
     */
-    //SGD2 sgd2(120, .012, .005, .001, .001); //.911506    1    .904275 18
+    //SGD2 sgd2(120, .012, .005, .001, .001); //.911506    1    .904275 18          .90051 probe18
     //SGD2 sgd2(120, .015, .007, .001, .001); // .914145    2    .906024 19
     //SGD2 sgd2(120, .012, .006, .001, .001); // .912915    3
     //SGD2 sgd2(120, .012, .005, .0009, .0009); // .911835   4
@@ -378,9 +381,9 @@ int main() {
     //SGD2 sgd2(120, .011, .004, .001, .001); // .911411    8
     //SGD2 sgd2(300, .015, .007, .001, .001);  // .914979    9
     //SGD2 sgd2(300, .012, .005, .001, .001);  // .913362    10   /902195 24
-    SGD2 sgd2(400, .012, .005, .001, .001);  // .90Ŕ653    26
+    //SGD2 sgd2(400, .012, .005, .001, .001);  // .90Ŕ653    26
     //SGD2 sgd2(300, .01, .004, .001, .001); // .914953 11
-    //SGD2 sgd2(200, .012, .005, .001, .001); // .912804     12      .902853 21
+    SGD2 sgd2(200, .012, .005, .001, .001); // .912804     12      .902853 21
     //SGD2 sgd2(150, .012, .005, .001, .001); // .911957    13       .903853 22
     //SGD2 sgd2(80, .013, .0045, .001, .001); // .909817    14    // .904565
     //SGD2 sgd2(113, .013, .00465, .001, .001);

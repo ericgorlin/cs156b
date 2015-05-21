@@ -22,7 +22,8 @@ LoadData2::LoadData2()
     if (testingOnProbe)
         n_datapoints = 1374739;
     else {
-        n_datapoints = 98291669;
+        n_datapoints = 99666408;
+        //n_datapoints = 98291669;
         std::cout << "train 4 lyfe";
     }
     // Training set has 98291669 values
@@ -40,9 +41,9 @@ LoadData2::LoadData2()
     string line;
     string filename;
     if (testingOnProbe) {
-        filename = "src/um/probe.dta";
+        filename = "../src/um/probe.dta";
     } else {
-        filename = "src/um/train.dta";
+        filename = "../src/um/trainprobe.dta";
     }
     ifstream myfile(filename.c_str());
 
@@ -129,7 +130,7 @@ double **LoadData2::probe()
 
     // Open the file
     string line;
-    ifstream myfile("src/um/probe.dta");
+    ifstream myfile("../src/um/probe.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;
@@ -167,7 +168,7 @@ double **LoadData2::qual()
 
     // Open the file
     string line;
-    ifstream myfile("src/um/qual.dta");
+    ifstream myfile("../src/um/qual.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;
