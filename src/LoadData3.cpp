@@ -3,11 +3,11 @@
 LoadData3::LoadData3()
 {
     std::cout << "Loading data..." << std::endl;
-    
-    
-    bool testingOnProbe = true; // change this in TimeSVDpp.cpp as well
-    
-    
+
+
+    bool testingOnProbe = false; // change this in TimeSVDpp.cpp as well
+
+
     n_users = 458293;
     n_movies = 17770;
     if (testingOnProbe)
@@ -19,25 +19,25 @@ LoadData3::LoadData3()
     data = new double*[4];
     for (unsigned int i = 0; i < 4; i++)
         data[i] = new double[n_datapoints];
-    
+
     totalMovies = 0;
     sumRatings = 0;
-    
+
     movies_per_user = new set<int>[n_users];
     userAvgDate = new double[n_users];
     for (unsigned int i = 0; i < n_users; ++i)
         userAvgDate[i] = 0;
-    
+
     // Open the file
     string line;
     string filename;
     if (testingOnProbe) {
-        filename = "../um/probe.dta";
+        filename = "../src/um/probe.dta";
     } else {
-        filename = "../um/train.dta";
+        filename = "../src/um/train.dta";
     }
     ifstream myfile(filename.c_str());
-    
+
     //ifstream myfile("um/all.dta");
     //ifstream myfile("um/shortall.dta");
     cout << myfile.is_open() << " open" << endl;
@@ -49,14 +49,14 @@ LoadData3::LoadData3()
             int space1 = line.find(" ");
             int space2 = line.find(" ", space1 + 1);
             int space3 = line.find(" ", space2 + 1);
-            
+
 
             // Insert into our temporary data vectors
             int userIdx = atoi(line.substr(0, space1).c_str());
             int movieIdx = atoi(line.substr(space1 + 1, space2).c_str());
             int date = atoi(line.substr(space2 + 1, space3).c_str());
             int rating = atoi(line.substr(space3 + 1).c_str());
-            
+
             totalMovies += 1;
             sumRatings += rating;
 
@@ -64,19 +64,19 @@ LoadData3::LoadData3()
             data[1][c] = movieIdx;
             data[2][c] = rating;
             data[3][c] = date;
-            
+
             movies_per_user[userIdx - 1].insert(movieIdx);
             userAvgDate[userIdx - 1] += date;
-            
-            
+
+
             c += 1;
-            
-            
+
+
         }
 
         std::cout << c << std::endl;
         for (unsigned int i = 0; i < n_users; ++i) {
-            
+
             userAvgDate[i] /= movies_per_user[i].size();
         }
     }
@@ -97,16 +97,24 @@ double **LoadData3::probe()
 {
     std::cout << "starting probe" << std::endl;
     // 1374739 data points
+
     double **probe_mat = 0;
     probe_mat = new double*[4];
-    for (unsigned int i = 0; i < 4; ++i)
-        probe_mat[i] = new double[1374739];
-    
+    probe_mat[0] = new double[1374739];
+    probe_mat[1] = new double[1374739];
+    probe_mat[2] = new double[1374739];
+
+    probe_mat[3] = new double[1374739];
+
+
+    //std::cout << "wtf" << std::endl;
+
     // Open the file
     string line;
-    ifstream myfile("../um/probe.dta");
+    ifstream myfile("../src/um/probe.dta");
     //ifstream myfile("um/shortprobe.dta");
-    
+
+    cout << myfile.is_open() << " open" << endl;
     int c = 0;
     if (myfile.is_open())
     {
@@ -115,20 +123,21 @@ double **LoadData3::probe()
             int space1 = line.find(" ");
             int space2 = line.find(" ", space1 + 1);
             int space3 = line.find(" ", space2 + 1);
-            
+            //std::cout << "where is probe lol" << std::endl;
+
             // Insert into the probe matrix
             probe_mat[0][c] = atoi(line.substr(0, space1).c_str());
             probe_mat[1][c] = atoi(line.substr(space1 + 1, space2).c_str());
             probe_mat[2][c] = atoi(line.substr(space3 + 1).c_str());
             probe_mat[3][c] = atoi(line.substr(space2 + 1, space3).c_str());
-                                   
-            
+
+
             c += 1;
         }
     }
-    
+
     return probe_mat;
-    
+
 }
 
 // Load the data from qual.dta into a matrix
@@ -140,12 +149,12 @@ double **LoadData3::qual()
     qual_mat = new double*[3];
     for (unsigned int i = 0; i < 3; ++i)
         qual_mat[i] = new double[2749898];
-    
+
     // Open the file
     string line;
-    ifstream myfile("../um/qual.dta");
+    ifstream myfile("../src/um/qual.dta");
     //ifstream myfile("um/shortprobe.dta");
-    
+
     int c = 0;
     if (myfile.is_open())
     {
@@ -153,18 +162,18 @@ double **LoadData3::qual()
         {
             int space1 = line.find(" ");
             int space2 = line.find(" ", space1 + 1);
-            
+
             // Insert into the probe matrix
             qual_mat[0][c] = atoi(line.substr(0, space1).c_str());
             qual_mat[1][c] = atoi(line.substr(space1 + 1, space2).c_str());
             qual_mat[2][c] = atoi(line.substr(space2 + 1).c_str());
-            
+
             c += 1;
         }
     }
-    
+
     return qual_mat;
-    
+
 }
 
 // Load the data from the train.dta file into a matrix
@@ -198,7 +207,7 @@ double *LoadData3::getUserAvgDate()
 std::vector<double> LoadData3::getNorms()
 {
     std::vector<double> norms;
-    
+
     for (int i = 0; i < n_users; i++) {
         norms.push_back(pow(movies_per_user[i].size(), -0.5));
     }

@@ -7,7 +7,9 @@
 #include <random>
 
 int main() {
-    TimeSVDpp sgd(100, 0.006, 0.011, 0.0003, 0.03, 0.03, 0.08, 0.006, 40, 0.03, 0.03, 0.001); //(file 1
+    //TimeSVDpp sgd(10, 0.006, 0.011, 0.0003, 0.03, 0.03, 0.08, 0.006, 40, 0.03, 0.03, 0.001);
+    TimeSVDpp sgd(10, 0.01, 0.011, 0.0001, 0.0012, 0.003, 0.08, 0.006, .03, 0.015, 0.03, 0.001); //(file 1
+    //TimeSVDpp sgd(10, .00381, .00692, .003045, .000179, .000617, .0002471, .0027, .00108, .158, .00974, .1603);
     // add bins 30?
 
     std::cout << "Done loading\n";
@@ -17,7 +19,7 @@ int main() {
 
 TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, double lruserbias, double lrmoviebias, double lambdauser, double lambdamovie, double lambdaalpha, double lambday, double lambdauserbias, double lambdamoviebias)
 {
-    bool testingOnProbe = true; // change this in LoadData3.cpp as well
+    bool testingOnProbe = false; // change this in LoadData3.cpp as well
     outfile = "TimeSVDpp_results1.txt";
     outfileProbe = "TimeSVDpp_probe1.txt";
 
@@ -30,7 +32,7 @@ TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, doub
         n_datapoints = 1374739;
     else
         n_datapoints = 98291669;
-    
+
     latentFactors = lf;
     lrUser = lruser;
     lrMovie = lrmovie;
@@ -123,12 +125,15 @@ TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, doub
 
         set<int>::iterator it;
         for (it = movies_per_user[i].begin(); it != movies_per_user[i].end(); ++it) {
+            //std::cout << *it << std::endl;
+            //std::cout << "hi" << std::endl;
             int thisMovie = *it - 1;
 
             for (unsigned int j = 0; j < lf; ++j) {
                 sumY[i][j] += y[thisMovie][j];
             }
         }
+        //std::cout << "done" << std::endl;
     }
     cout << "Done initializing SVD++ implicit arrays" << endl;
 
@@ -251,8 +256,11 @@ void TimeSVDpp::run_sgd()
 
                 u[user][k] += lrUser * (error * oldMovieVal - lambdaUser * oldUserVal);
                 v[movie][k] += lrMovie * (error * (oldUserVal + norms[user] * currentPointSumY[k]) - lambdaMovie * oldMovieVal);
+                // is this same thing
                 tempSumY[k] += error * norms[user] * oldMovieVal;
-                alpha[date][k] += lrAlpha * (error - lambdaAlpha * currAlpha[k]);
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //alpha[user][k] += lrAlpha * (error - lambdaAlpha * currAlpha[k]);
+                currAlpha[k] += lrAlpha * (error - lambdaAlpha * currAlpha[k]);
 
                 if (perUser == userNumMovies) {
                     double totalUpdate = 0;
@@ -291,6 +299,7 @@ void TimeSVDpp::run_sgd()
             }
 
             prev_user = user;
+            alpha[user] = currAlpha;
         }
         cout << "Epoch completed." << endl;
 
@@ -336,6 +345,10 @@ void TimeSVDpp::run_sgd()
 
 
         lr *= 0.9; // make this a variable
+        lrUser *= .9;
+        lrUserBias *= .9;
+        lrMovie *= .9;
+        lrMovieBias *= .9;
 
     }
 
@@ -352,7 +365,7 @@ void TimeSVDpp::run_sgd()
 // Find the test error on the probe data set.
 double TimeSVDpp::find_error(int epoch) {
     probe = 0;
-    probe = new double*[3];
+    probe = new double*[4];
     probe[0] = new double[1374739];
     probe[1] = new double[1374739];
     probe[2] = new double[1374739];
@@ -437,16 +450,16 @@ for (unsigned int i = 0; i < 1374739; ++i)
 }
 
 double TimeSVDpp::estimateRating(int user, int movie, int date) {
-    double estimate = user_avg[user] + global_mean + movie_avg[movie];
-    
     double timeVal = pow(abs(date - userAvgDate[user]), 0.4) * (date - userAvgDate[user] > 0 ? 1 : -1);
-    
-    cout << (date - userAvgDate[user] > 0 ? 1 : -1) << endl;
+
+    double estimate = global_mean + movie_avg[movie] + user_avg[user];
+    //estimate += user_avg[user] + timeVal * alpha[user][0];
+    //cout << (date - userAvgDate[user] > 0 ? 1 : -1) << endl;
 
     for (unsigned int j = 0; j < latentFactors; ++j) {
         estimate += (u[user][j] + sumY[user][j] * norms[user] + alpha[user][j] * timeVal) * v[movie][j];
     }
-    
+
     if (estimate > 5)
         estimate = 5;
     else if (estimate < 1)
