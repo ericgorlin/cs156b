@@ -8,9 +8,10 @@
 
 
 int main() {
-    //TimeSVDpp sgd(10, 0.006, 0.011, 0.0003, 0.03, 0.03, 0.08, 0.006, 40, 0.03, 0.03, 0.001); //(file 1
+    //TimeSVDpp sgd(10, 0.006, 0.011, 0.0003, 0.03, 0.03, 0.08, 0.006, .04, 0.03, 0.03, 0.001); //(file 1
     //TimeSVDpp sgd(10, 0.006, 0.011, 0.0003, 0.03, 0.03, 0.08, 0.006, .04, 0.03, 0.03, 0.001);
-    TimeSVDpp sgd(10, .01, .01, .01, .01, .01, .012, .012, .4, .024, .012, .012);
+    TimeSVDpp sgd(10, .012, .012, .012, .012, .012, .012, .012, .001, .024, .012, .012);
+    //TimeSVDpp sgd(10, .0117, .000146, .001, .00027, .000000147, .127, .00004249, .000426, .00001698, .0000003423, .000707);
     // add bins 30?
 
     std::cout << "Done loading\n";
@@ -23,8 +24,8 @@ TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, doub
 {
     nbins = 30;
     bool testingOnProbe = false; // change this in LoadData3.cpp as well
-    outfile = "TimeSVDpp_results1.txt";
-    outfileProbe = "TimeSVDpp_probe1.txt";
+    outfile = "TimeSVDpp_results2.txt";
+    outfileProbe = "TimeSVDpp_probe2.txt";
 
 
     // Set the number of latent factors, users, and movies
@@ -126,7 +127,7 @@ TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, doub
 
         for (unsigned int j = 0; j < lf; ++j) {
             sumY[i][j] = 0;
-            alphat[i][j] = 0;
+            alphat[i][j] = d(gen);
         }
 
         set<int>::iterator it;
