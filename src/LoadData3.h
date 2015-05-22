@@ -32,23 +32,30 @@ public:
     std::vector<double> getBetterMovieMean();
     double *getUserAvgDate();
     set<int> *getMoviesPerUser();
+    set<int> *getDatesPerUser();
     std::vector<double> getNorms();
-    
-    
+    int getMinDate();
+    int getMaxDate();
+
+
     bool testingOnProbe;
     unsigned int n_users;
     unsigned int n_movies;
     unsigned int n_datapoints;
-    
+
+
 protected:
 private:
     unordered_map<int, std::vector<double> > userMap;
     unordered_map<int, std::vector<double> > movieMap;
     double **data;
     set<int> *movies_per_user;
+    set<int> *dates_per_user;
     double *userAvgDate;
     int totalMovies;
     double sumRatings;
+    int minDate;
+    int maxDate;
 };
 
 #endif // LOADDATA_H

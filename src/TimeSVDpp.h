@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 
+
 class LoadData3;
 
 class TimeSVDpp
@@ -35,7 +36,7 @@ private:
     double global_mean;
     std::vector<double> user_vec;
     std::vector<double> movie_vec;
-    
+
     LoadData3 *l;
     double **u;
     double **v;
@@ -47,15 +48,22 @@ private:
     double *movie_avg;
     double **y;
     double **sumY;
-    double **alpha;
-    double *currAlpha;
+    double **alphat;
+    double *alpha;
+    //double *currAlpha;
+    int *dateRange;
     std::set<int> *movies_per_user;
     std::vector<double> norms;
     double *userAvgDate;
-    
+    double **movie_bins;
     double estimateRating(int user, int movie, int date);
-    
-    
+    int dateToBin(int date);
+    int nbins;
+    int minDate;
+    int maxDate;
+    int UserRange(int date);
+
+
     void create_file();
     void create_probe_file();
 };

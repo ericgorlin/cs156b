@@ -38,9 +38,9 @@ LoadData2::LoadData2()
     string line;
     string filename;
     if (testingOnProbe) {
-        filename = "../um/probe.dta";
+        filename = "../src/um/probe.dta";
     } else {
-        filename = "../um/train.dta";
+        filename = "../src/um/train.dta";
     }
     ifstream myfile(filename.c_str());
 
@@ -127,7 +127,7 @@ double **LoadData2::probe()
 
     // Open the file
     string line;
-    ifstream myfile("../um/probe.dta");
+    ifstream myfile("../src/um/probe.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;
@@ -165,7 +165,7 @@ double **LoadData2::qual()
 
     // Open the file
     string line;
-    ifstream myfile("../um/qual.dta");
+    ifstream myfile("../src/um/qual.dta");
     //ifstream myfile("um/shortprobe.dta");
 
     int c = 0;

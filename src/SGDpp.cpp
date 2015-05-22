@@ -6,6 +6,7 @@
 #include <iostream>
 #include <random>
 
+/*
 int main() {
     //SGDpp sgd(100, 0.005, 0.007, 0.015); 4.4%
     //SGDpp sgd(100, 0.008, 0.007, 0.02);  //4.65% .905 probe
@@ -17,21 +18,23 @@ int main() {
     //SGDpp sgd(100, 0.01, 0.01, 0.02); 4.82 (file 12)
     //SGDpp sgd(150, 0.012, 0.01, 0.02); 5.01 (file 13)
     //SGDpp sgd(150, 0.016, 0.01, 0.02); 4.95 (file 14)
-    //SGDpp sgd(200, 0.012, 0.01, 0.02); 5.06 (file 15)
+    //SGDpp sgd(200, 0.01s2, 0.01, 0.02); 5.06 (file 15)
     //SGDpp sgd(200, 0.012, 0.01, 0.024); 5.07 (file 16)
     //SGDpp sgd(200, 0.012, 0.01, 0.016); 5.07 (file 17)
     //SGDpp sgd(150, 0.06, 0.01, 0.1); 2.41 (file 18)
-    
+    SGDpp sgd(10, .012, .01, .024);
+
     std::cout << "Done loading\n";
     sgd.run_sgd();
-    
+
 }
+*/
 
 SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
 {
     bool testingOnProbe = false; // change this in LoadData2.cpp as well
-    outfile = "SGDpp_results18.txt";
-    outfileProbe = "SGDpp_probe18.txt";
+    outfile = "SGDpp_resultstest.txt";
+    outfileProbe = "SGDpp_probetest.txt";
 
 
     // Set the number of latent factors, users, and movies
@@ -74,15 +77,15 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
         for (unsigned int j = 0; j < latent_factors; ++j)
             v[i][j] = d(gen);
     }
-    
-    
+
+
     prev_u = 0;
     prev_u = new double*[n_users];
     for (unsigned int i = 0; i < n_users; ++i)
     {
         u[i] = new double[latent_factors];
     }
-    
+
     prev_v = 0;
     prev_v = new double*[n_movies];
     for (unsigned int i = 0; i < n_movies; ++i)
@@ -114,7 +117,7 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
     for (unsigned int i = 0; i < n_users; ++i)
     {
         sumY[i] = new double[lf];
-        
+
         for (unsigned int j = 0; j < lf; ++j) {
             sumY[i][j] = 0;
         }
@@ -122,7 +125,7 @@ SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
         set<int>::iterator it;
         for (it = movies_per_user[i].begin(); it != movies_per_user[i].end(); ++it) {
             int thisMovie = *it - 1;
-            
+
             for (unsigned int j = 0; j < lf; ++j) {
                 sumY[i][j] += y[thisMovie][j];
             }
@@ -191,7 +194,7 @@ void SGDpp::run_sgd()
 
     double new_error = 0;
     double old_error = 1000000;
-    
+
     double **prev_u = 0;
     double **prev_v = 0;
     prev_u = 0;
@@ -202,7 +205,7 @@ void SGDpp::run_sgd()
         prev_u[i] = new double[latent_factors];
     for (unsigned int i = 0; i < n_movies; ++i)
         prev_v[i] = new double[latent_factors];
-    
+
 
     double lr = learn_rate;
     int user;
@@ -226,8 +229,8 @@ void SGDpp::run_sgd()
         int prev_user = -1;
         int perUser = 0;
 
-        
-        
+
+
         clock_t begin2 = clock();
         double countTo10 = 0;
         // Iterate through data points, one user at a time
@@ -298,7 +301,7 @@ void SGDpp::run_sgd()
                     ((double)clock() - begin2) / CLOCKS_PER_SEC / 60. * (n_datapoints - i) / (n_datapoints / 10 + 1) << " minutes" << endl;
                 }
                 begin2 = clock();
-                
+
                 countTo10++;
             }
 
@@ -329,19 +332,19 @@ void SGDpp::run_sgd()
             break;
         }
         old_error = new_error;
-        
+
         // update prev_u and prev_v
         for (unsigned int i = 0; i < n_users; ++i)
         {
             u[i] = new double[latent_factors];
-            
+
             for (unsigned int j = 0; j < latent_factors; ++j)
                 prev_u[i][j] = u[i][j];
         }
         for (unsigned int i = 0; i < n_movies; ++i)
         {
             u[i] = new double[latent_factors];
-            
+
             for (unsigned int j = 0; j < latent_factors; ++j)
                 prev_v[i][j] = v[i][j];
         }
@@ -354,7 +357,7 @@ void SGDpp::run_sgd()
     delete[] tempSumY;
     create_file();
     create_probe_file();
-    
+
     cout << ((double)clock() - begin) / CLOCKS_PER_SEC / 60. << " minutes to learn" << endl;
 
     delete[] prev_u;
@@ -432,18 +435,18 @@ void SGDpp::create_probe_file()
     myfile1.open(outfileProbe);
     cout << "Creating output file" << endl;
     int c = 0;
-    
+
     for (unsigned int i = 0; i < 1374739; ++i)
     {
         int user = probe[0][i] - 1;
         int movie = probe[1][i] - 1;
 
         double predicted = SGDpp::estimateRating(user, movie);
-        
+
         c += 1;
-        
+
         myfile1 << predicted << "\n";
-        
+
     }
 }
 
