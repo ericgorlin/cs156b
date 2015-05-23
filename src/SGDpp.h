@@ -43,7 +43,7 @@ class SGDpp
         double estimateRating(int user, int movie);
 
 
-        void create_file();
+        void create_file(int i);
         void create_probe_file();
 };
 

@@ -6,43 +6,43 @@
 #include <iostream>
 #include <random>
 
-/*
+
 int main() {
     //SGDpp sgd(100, 0.005, 0.007, 0.015); 4.4%
     //SGDpp sgd(100, 0.008, 0.007, 0.02);  //4.65% .905 probe
     //SGDpp sgd(100, 0.02, 0.007, 0.02); worse
     //SGDpp sgd(75, 0.008, 0.007, 0.02); 4.58%
     //SGDpp sgd(150, 0.008, 0.007, 0.02); 4.77
-    //SGDpp sgd(100, 0.01, 0.007, 0.025); 4.77 (file 10)
+    SGDpp sgd(100, 0.01, 0.007, 0.025); //4.77 (file 10)
     //SGDpp sgd(150, 0.008, 0.007, 0.02); 4.78 (file 11)
     //SGDpp sgd(100, 0.01, 0.01, 0.02); 4.82 (file 12)
-    //SGDpp sgd(150, 0.012, 0.01, 0.02); 5.01 (file 13)
+    //SGDpp sgd(150, 0.012, 0.01, 0.02); //5.01 (file 13)
     //SGDpp sgd(150, 0.016, 0.01, 0.02); 4.95 (file 14)
-    SGDpp sgd(200, 0.012, 0.01, 0.02);
+    //SGDpp sgd(200, 0.012, 0.01, 0.02);
 
     //SGDpp sgd(200, 0.012, 0.01, 0.02); 5.06 (file 15)
     //SGDpp sgd(200, 0.012, 0.01, 0.024); 5.07 (file 16)
     //SGDpp sgd(200, 0.012, 0.01, 0.016); 5.07 (file 17)
     //SGDpp sgd(150, 0.06, 0.01, 0.1); 2.41 (file 18)
     //SGDpp sgd(200, 0.012, 0.015, 0.02); 4.76 (file 19)
-    //SGDpp sgd(250, 0.012, 0.01, 0.02); 5.12 (file 20)
+    //SGDpp sgd(300, 0.012, 0.01, 0.02); //5.12 (file 20)
 
     // using all now
     //SGDpp sgd(150, 0.012, 0.01, 0.02); // All file 1, from file 13, 17 epochs. 5.00
-    SGDpp sgd(200, 0.012, 0.01, 0.016); // All file 2, from file 17, 21 epochs.
+    //SGDpp sgd(200, 0.012, 0.01, 0.016); // All file 2, from file 17, 21 epochs.
 
 
     std::cout << "Done loading\n";
     sgd.run_sgd();
 
 }
-*/
+
 
 SGDpp::SGDpp(int lf, double lambda_val, double lr, double lambda_y)
 {
     bool testingOnProbe = false; // change this in LoadData2.cpp as well
-    outfile = "SGDpp_resultsAll_2.txt";
-    outfileProbe = "SGDpp_probeAll_2.txt";
+    outfile = "SGDpp_resultsAll_10.txt";
+    outfileProbe = "SGDpp_probeAll_10.txt";
 
 
     // Set the number of latent factors, users, and movies
@@ -227,7 +227,7 @@ void SGDpp::run_sgd()
     for (int i = 0; i < latent_factors; i++)
             tempSumY[i] = 0.0;
 
-    for (unsigned int epoch = 1; epoch < 21; epoch++) {
+    for (unsigned int epoch = 1; epoch < 26; epoch++) {
 
         std::cout << "New epoch " << epoch << std::endl;
 
@@ -345,6 +345,7 @@ void SGDpp::run_sgd()
         }
 
         old_error = new_error;
+        create_file(epoch);
 
 
         // update prev_u and prev_v
@@ -370,7 +371,7 @@ void SGDpp::run_sgd()
     }
 
     delete[] tempSumY;
-    create_file();
+    create_file(50);
     create_probe_file();
 
     cout << ((double)clock() - begin) / CLOCKS_PER_SEC / 60. << " minutes to learn" << endl;
@@ -411,10 +412,10 @@ double SGDpp::find_error(int epoch) {
 
 // Create an output file using the u and v matrices we found and the qual
 // data
-void SGDpp::create_file()
+void SGDpp::create_file(int i)
 {
     ofstream myfile1;
-    myfile1.open(outfile);
+    myfile1.open(outfile + std::to_string(i));
     double **qual = 0;
     qual = new double *[2];
     qual[0] = new double[2749898];
