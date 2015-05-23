@@ -10,7 +10,7 @@ class LoadData3;
 class TimeSVDpp
 {
 public:
-    TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, double lruserbias, double lrmoviebias, double lambdauser, double lambdamovie, double lambdaalpha, double lambday, double lambdauserbias, double lambdamoviebias);
+    TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, double lruserbias, double lrmoviebias, double lruserbins, double lrmoviebins, double lambdauser, double lambdamovie, double lambdaalpha, double lambday, double lambdauserbias, double lambdamoviebias, double lambdauserbins, double lambdamoviebins);
     virtual ~TimeSVDpp();
     void run_sgd();
     double find_error(int epoch);
@@ -28,11 +28,15 @@ private:
     double lrAlpha;
     double lrUserBias;
     double lrMovieBias;
+    double lrUserBins;
+    double lrMovieBins;
     double lambdaUser;
     double lambdaMovie;
     double lambdaAlpha;
     double lambdaUserBias;
     double lambdaMovieBias;
+    double lambdaUserBins;
+    double lambdaMovieBins;
     double global_mean;
     std::vector<double> user_vec;
     std::vector<double> movie_vec;
@@ -53,12 +57,16 @@ private:
     //double *currAlpha;
     int *dateRange;
     std::set<int> *movies_per_user;
+    std::set<int> *users_per_movie;
     std::vector<double> norms;
     double *userAvgDate;
     double **movie_bins;
+    double **user_bins;
     double estimateRating(int user, int movie, int date);
     int dateToBin(int date);
+    int dateToUserBin(int date);
     int nbins;
+    int nuserbins;
     int minDate;
     int maxDate;
     int UserRange(int date);

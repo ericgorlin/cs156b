@@ -10,7 +10,7 @@
 int main() {
     //TimeSVDpp sgd(10, 0.006, 0.011, 0.0003, 0.03, 0.03, 0.08, 0.006, .04, 0.03, 0.03, 0.001); //(file 1
     //TimeSVDpp sgd(10, 0.006, 0.011, 0.0003, 0.03, 0.03, 0.08, 0.006, .04, 0.03, 0.03, 0.001);
-    TimeSVDpp sgd(10, .012, .012, .012, .012, .012, .012, .012, .001, .024, .012, .012);
+    TimeSVDpp sgd(10, .012, .012, .012, .012, .012, .012, .012, .012, .012, .001, .024, .012, .012, .012, .012);
     //TimeSVDpp sgd(10, .0117, .000146, .001, .00027, .000000147, .127, .00004249, .000426, .00001698, .0000003423, .000707);
     // add bins 30?
 
@@ -20,12 +20,12 @@ int main() {
 }
 
 
-TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, double lruserbias, double lrmoviebias, double lambdauser, double lambdamovie, double lambdaalpha, double lambday, double lambdauserbias, double lambdamoviebias)
+TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, double lruserbias, double lrmoviebias, double lruserbins, double lrmoviebins, double lambdauser, double lambdamovie, double lambdaalpha, double lambday, double lambdauserbias, double lambdamoviebias, double lambdauserbins, double lambdamoviebins)
 {
     nbins = 30;
     bool testingOnProbe = false; // change this in LoadData3.cpp as well
-    outfile = "TimeSVDpp_results2.txt";
-    outfileProbe = "TimeSVDpp_probe2.txt";
+    outfile = "TimeSVDpp_results3.txt";
+    outfileProbe = "TimeSVDpp_probe3.txt";
 
 
     // Set the number of latent factors, users, and movies
@@ -43,12 +43,16 @@ TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, doub
     lrAlpha = lralpha;
     lrUserBias = lruserbias;
     lrMovieBias = lrmoviebias;
+    lrUserBins = lruserbins;
+    lrMovieBins = lrmoviebins;
     lambdaUser = lambdauser;
     lambdaMovie = lambdamovie;
     lambdaAlpha = lambdaalpha;
     lambdaY = lambday;
     lambdaUserBias = lambdauserbias;
     lambdaMovieBias = lambdamoviebias;
+    lambdaUserBins = lambdauserbins;
+    lambdaMovieBins = lambdamoviebins;
 
     // Create a normal distribution to sample random numbers from
     std::random_device rd;
@@ -152,6 +156,7 @@ TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, doub
     data = l->loadRatingsVector();
     minDate = l->getMinDate();
     maxDate = l->getMaxDate();
+    nuserbins = 100;
 
     user_avg = 0;
     user_avg = new double[n_users];
@@ -164,10 +169,18 @@ TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, doub
 
     movie_bins = 0;
     movie_bins = new double*[n_movies];
-    for (unsigned int i = 0; i < n_users; ++i) {
+    for (unsigned int i = 0; i < n_movies; ++i) {
         movie_bins[i] = new double[nbins];
         for (unsigned int j = 0; j < nbins; ++j)
             movie_bins[i][j] = 0;
+    }
+
+    user_bins = 0;
+    user_bins = new double*[n_users];
+    for (unsigned int i = 0; i < n_users; ++i) {
+        user_bins[i] = new double[nuserbins];
+        for (unsigned int j = 0; j < nuserbins; ++j)
+            user_bins[i][j] = 0;
     }
 
     dateRange = new int[n_users];
@@ -219,6 +232,18 @@ int TimeSVDpp::dateToBin(int date) {
     for (int i = 1; i <= nbins; ++i)
     {
         if (date >= curr && date < minDate + total / nbins * i) {
+            return (i - 1);
+        }
+    }
+}
+
+int TimeSVDpp::dateToUserBin(int date) {
+    int total = maxDate - minDate;
+    int curr = minDate;
+
+    for (int i = 1; i <= nuserbins; ++i)
+    {
+        if (date >= curr && date < minDate + total / nuserbins * i) {
             return (i - 1);
         }
     }
@@ -299,7 +324,8 @@ void TimeSVDpp::run_sgd()
             // Update user avg and movie avg
             user_avg[user] += lrUserBias * (error - lambdaUserBias * user_avg[user]);
             movie_avg[movie] += lrMovieBias * (error - lambdaMovieBias * movie_avg[movie]);
-            movie_bins[movie][dateToBin(date)] += lrMovieBias * (error - lambdaMovieBias * movie_bins[movie][dateToBin(date)]);
+            movie_bins[movie][dateToBin(date)] += lrMovieBins * (error - lambdaMovieBins * movie_bins[movie][dateToBin(date)]);
+            user_bins[user][dateToUserBin(date)] += lrUserBins * (error - lambdaUserBins * user_bins[user][dateToUserBin(date)]);
             //std::cout << dateToBin(date) << std::endl;
             //user_avg[user] += lr * (error - lambda * user_avg[user]);
             //movie_avg[movie] += lr * (error - lambda * movie_avg[movie]);
@@ -513,7 +539,7 @@ for (unsigned int i = 0; i < 1374739; ++i)
 }
 
 double TimeSVDpp::estimateRating(int user, int movie, int date) {
-    double estimate = user_avg[user] + global_mean + movie_avg[movie] + movie_bins[movie][dateToBin(date)];
+    double estimate = user_avg[user] + global_mean + movie_avg[movie] + movie_bins[movie][dateToBin(date)] + user_bins[user][dateToUserBin(date)];
     double timeVal = pow(abs(date - userAvgDate[user]), 0.4) * (date - userAvgDate[user] > 0 ? 1 : -1);
     timeVal /= dateRange[user];
     //std::cout <<  << std::endl;
