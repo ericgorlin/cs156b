@@ -8,11 +8,18 @@
 
 
 int main() {
-    //TimeSVDpp sgd(10, 0.006, 0.011, 0.0003, 0.03, 0.03, 0.08, 0.006, 40, 0.03, 0.03, 0.001); //(file 1
+    //TimeSVDpp sgd(10, 0.006, 0.011, 0.0003, 0.03, 0.03, 0.08, 0.006, 40, 0.03, 0.03, 0.001);
     //TimeSVDpp sgd(10, 0.006, 0.011, 0.0003, 0.03, 0.03, 0.08, 0.006, .04, 0.03, 0.03, 0.001);
-    TimeSVDpp sgd(10, .01, .01, .01, .01, .01, .012, .012, .4, .024, .012, .012);
+    
+    
+    
+    //TimeSVDpp sgd(10, .01, .01, .01, .01, .01, .012, .012, .4, .024, .012, .012); f1
     // add bins 30?
-
+    //TimeSVDpp sgd(150, .01, .01, .001, .01, .01, .012, .012, .4, .024, .012, .012); // 5.0% f2
+    //TimeSVDpp sgd(150, .01, .01, .01, .01, .01, .012, .012, .4, .024, .012, .012); //  4.96% f3
+    
+    
+    
     std::cout << "Done loading\n";
     sgd.run_sgd();
 
@@ -23,8 +30,8 @@ TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, doub
 {
     nbins = 30;
     bool testingOnProbe = false; // change this in LoadData3.cpp as well
-    outfile = "TimeSVDpp_results1.txt";
-    outfileProbe = "TimeSVDpp_probe1.txt";
+    outfile = "TimeSVDpp_resultsEG3.txt";
+    outfileProbe = "TimeSVDpp_probeEG3.txt";
 
 
     // Set the number of latent factors, users, and movies
@@ -127,9 +134,7 @@ TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, doub
         for (unsigned int j = 0; j < lf; ++j) {
             sumY[i][j] = 0;
             alphat[i][j] = 0;
-        }
-
-        set<int>::iterator it;
+        }        set<int>::iterator it;
         for (it = movies_per_user[i].begin(); it != movies_per_user[i].end(); ++it) {
             int thisMovie = *it - 1;
 
@@ -161,9 +166,10 @@ TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, doub
     for (unsigned int i = 0; i < n_movies; ++i)
         movie_avg[i] = d(gen);
 
+
     movie_bins = 0;
     movie_bins = new double*[n_movies];
-    for (unsigned int i = 0; i < n_users; ++i) {
+    for (unsigned int i = 0; i < n_movies; ++i) {
         movie_bins[i] = new double[nbins];
         for (unsigned int j = 0; j < nbins; ++j)
             movie_bins[i][j] = 0;
