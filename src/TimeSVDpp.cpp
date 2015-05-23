@@ -119,19 +119,19 @@ TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, doub
         }
     }
 
-    alpha = new double[n_users];
+    //alpha = new double[n_users];
 
     sumY = new double*[n_users];
-    alphat = new double*[n_users];
+    //alphat = new double*[n_users];
     for (unsigned int i = 0; i < n_users; ++i)
     {
-        alpha[i] = d(gen);
+        //alpha[i] = d(gen);
         sumY[i] = new double[lf];
-        alphat[i] = new double[lf];
+        //alphat[i] = new double[lf];
 
         for (unsigned int j = 0; j < lf; ++j) {
             sumY[i][j] = 0;
-            alphat[i][j] = d(gen);
+            //alphat[i][j] = d(gen);
         }
 
         set<int>::iterator it;
@@ -205,6 +205,28 @@ TimeSVDpp::TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, doub
             dateRange[i] = 1;
     }
 
+    user_bias_bins = 0;
+    user_bias_bins = new double**[latentFactors];
+    for (unsigned int i = 0; i < latentFactors; ++i) {
+        user_bias_bins[i] = new double*[n_users];
+        for (unsigned int j = 0; j < n_users; ++j) {
+            user_bias_bins[i][j] = new double[nuserbins];
+            for (unsigned int k = 0; k < nuserbins; ++k)
+                user_bias_bins[i][j][k] = 0;
+        }
+    }
+
+    movie_bias_bins = 0;
+    movie_bias_bins = new double**[latentFactors];
+    for (unsigned int i = 0; i < latentFactors; ++i) {
+        movie_bias_bins[i] = new double*[n_movies];
+        for (unsigned int j = 0; j < n_movies; ++j) {
+            movie_bias_bins[i][j] = new double[nbins];
+            for (unsigned int k = 0; k < nbins; ++k)
+                movie_bias_bins[i][j][k] = 0;
+        }
+    }
+
 
     clock_t end = clock();
     double elapsed_min = double(end - begin) / CLOCKS_PER_SEC / 60;
@@ -227,11 +249,10 @@ TimeSVDpp::~TimeSVDpp()
 
 int TimeSVDpp::dateToBin(int date) {
     int total = maxDate - minDate;
-    int curr = minDate;
 
     for (int i = 1; i <= nbins; ++i)
     {
-        if (date >= curr && date < minDate + total / nbins * i) {
+        if (date <= minDate + total * i / nbins) {
             return (i - 1);
         }
     }
@@ -239,11 +260,10 @@ int TimeSVDpp::dateToBin(int date) {
 
 int TimeSVDpp::dateToUserBin(int date) {
     int total = maxDate - minDate;
-    int curr = minDate;
 
     for (int i = 1; i <= nuserbins; ++i)
     {
-        if (date >= curr && date < minDate + total / nuserbins * i) {
+        if (date <= minDate + total * i / nuserbins) {
             return (i - 1);
         }
     }
@@ -306,6 +326,11 @@ void TimeSVDpp::run_sgd()
             rating = data[2][i];
             date = data[3][i];
 
+            /*
+            if (user > 400000)
+                std::cout << user << " " << movie << " " << date << std::endl;
+            */
+
             //std::cout << "2" << std::endl;
 
             double *currentPointSumY = sumY[user];
@@ -322,10 +347,12 @@ void TimeSVDpp::run_sgd()
             //std::cout << "4" << std::endl;
 
             // Update user avg and movie avg
+            int userDate = dateToUserBin(date);
+            int movieDate = dateToBin(date);
             user_avg[user] += lrUserBias * (error - lambdaUserBias * user_avg[user]);
             movie_avg[movie] += lrMovieBias * (error - lambdaMovieBias * movie_avg[movie]);
-            movie_bins[movie][dateToBin(date)] += lrMovieBins * (error - lambdaMovieBins * movie_bins[movie][dateToBin(date)]);
-            user_bins[user][dateToUserBin(date)] += lrUserBins * (error - lambdaUserBins * user_bins[user][dateToUserBin(date)]);
+            movie_bins[movie][movieDate] += lrMovieBins * (error - lambdaMovieBins * movie_bins[movie][movieDate]);
+            user_bins[user][userDate] += lrUserBins * (error - lambdaUserBins * user_bins[user][userDate]);
             //std::cout << dateToBin(date) << std::endl;
             //user_avg[user] += lr * (error - lambda * user_avg[user]);
             //movie_avg[movie] += lr * (error - lambda * movie_avg[movie]);
@@ -337,20 +364,28 @@ void TimeSVDpp::run_sgd()
             }
             double timeVal = pow(abs(date - userAvgDate[user]), 0.4) * (date - userAvgDate[user] > 0 ? 1 : -1);
             timeVal /= dateRange[user];
-            alpha[user] += lrAlpha * (error * timeVal - lambdaAlpha * alpha[user]);
+            //alpha[user] += lrAlpha * (error * timeVal - lambdaAlpha * alpha[user]);
 
             for (unsigned int k = 0; k < latentFactors; ++k) {
+                //std::cout << movieDate << std::endl;
+                //std::cout << userDate << std::endl;
                 double oldUserVal = u[user][k];
                 double oldMovieVal = v[movie][k];
+                double oldMovieBinVal = movie_bias_bins[k][movie][movieDate];
+                double oldUserBinVal = user_bias_bins[k][user][userDate];
+                //std::cout << "HI" << std::endl;
 
-                u[user][k] += lrUser * (error * oldMovieVal - lambdaUser * oldUserVal);
-                v[movie][k] += lrMovie * (error * (oldUserVal + norms[user] * currentPointSumY[k]) - lambdaMovie * oldMovieVal);
+                u[user][k] += lrUser * (error * (oldMovieVal + oldMovieBinVal) - lambdaUser * oldUserVal);
+                v[movie][k] += lrMovie * (error * (oldUserVal + oldUserBinVal + norms[user] * currentPointSumY[k]) - lambdaMovie * oldMovieVal);
+                user_bias_bins[k][user][userDate] += lrUserBias * (error * (oldMovieVal + oldMovieBinVal) - lambdaUserBias * oldUserBinVal);
+                movie_bias_bins[k][movie][movieDate] += lrMovieBias * (error * (oldUserVal + oldUserBinVal + norms[user] * currentPointSumY[k]) - lambdaMovieBias * oldMovieBinVal);
+                //std::cout << "HO" << std::endl;
                 //tempSumY[k] += error * norms[user] * oldMovieVal;
                 //u[user][k] += lr * (error * oldMovieVal - lambda * oldUserVal);
                 //v[movie][k] += lr * (error * (oldUserVal + norms[user] * currentPointSumY[k]) - lambda * oldMovieVal);
                 tempSumY[k] += (error * norms[user] * oldMovieVal);
 
-                alphat[user][k] += lrAlpha * (error * timeVal - lambdaAlpha * alphat[user][k]);
+                //alphat[user][k] += lrAlpha * (error * timeVal - lambdaAlpha * alphat[user][k]);
                 if (perUser == userNumMovies) {
                     double totalUpdate = 0;
 
@@ -393,6 +428,7 @@ void TimeSVDpp::run_sgd()
 
         // Find the error for the new values
         new_error = find_error(epoch);
+        std::cout << "fuck" << std::endl;
 
         // If there's no decrease in error, stop.
         std::cout << "RMSE: " << new_error << std::endl;
@@ -438,6 +474,8 @@ void TimeSVDpp::run_sgd()
         lrMovie *= .9;
         lrMovieBias *= .9;
         lrAlpha *= .9;
+        lrUserBins *= .9;
+        lrMovieBins *= .9;
 
     }
 
@@ -543,16 +581,20 @@ double TimeSVDpp::estimateRating(int user, int movie, int date) {
     double timeVal = pow(abs(date - userAvgDate[user]), 0.4) * (date - userAvgDate[user] > 0 ? 1 : -1);
     timeVal /= dateRange[user];
     //std::cout <<  << std::endl;
-    estimate += alpha[user] * timeVal;
+    //estimate += alpha[user] * timeVal;
     //std::cout << movie_bins[movie][dateToBin(date)] << std::endl;
 
 
     //std::cout << timeVal << std::endl;
     //cout << (date - userAvgDate[user] > 0 ? 1 : -1) << endl;
 
+
     for (unsigned int j = 0; j < latentFactors; ++j) {
-        estimate += (u[user][j] + alphat[user][j] * timeVal + sumY[user][j] * norms[user]) * v[movie][j];
-        //estimate += (u[user][j] + sumY[user][j] * norms[user]) * v[movie][j];
+        //estimate += (u[user][j] + alphat[user][j] * timeVal + sumY[user][j] * norms[user]) * v[movie][j];
+        //std::cout << movie_bias_bins[j][movie][dateToBin(date)] << std::endl;
+        //std::cout << user_bias_bins[j][user][dateToUserBin(date)] << std::endl;
+        //std::cout << j << std::endl;
+        estimate += (u[user][j] + user_bias_bins[j][user][dateToUserBin(date)] + sumY[user][j] * norms[user]) * (v[movie][j] + movie_bias_bins[j][movie][dateToBin(date)]);
         //estimate += (u[user][j] + sumY[user][j] * norms[user]) * v[movie][j];
     }
 
@@ -560,6 +602,8 @@ double TimeSVDpp::estimateRating(int user, int movie, int date) {
         estimate = 5;
     else if (estimate < 1)
         estimate = 1;
+    //std::cout << "estimate?" << std::endl;
+    //std::cout << estimate << std::endl;
 
     return estimate;
 }

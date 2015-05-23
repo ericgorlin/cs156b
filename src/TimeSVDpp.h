@@ -62,6 +62,8 @@ private:
     double *userAvgDate;
     double **movie_bins;
     double **user_bins;
+    double ***movie_bias_bins;
+    double ***user_bias_bins;
     double estimateRating(int user, int movie, int date);
     int dateToBin(int date);
     int dateToUserBin(int date);
