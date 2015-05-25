@@ -10,7 +10,7 @@ class LoadData3;
 class TimeSVDpp
 {
 public:
-    TimeSVDpp(int lf, double lruser, double lrmovie, double lralpha, double lruserbias, double lrmoviebias, double lruserbins, double lrmoviebins, double lambdauser, double lambdamovie, double lambdaalpha, double lambday, double lambdauserbias, double lambdamoviebias, double lambdauserbins, double lambdamoviebins);
+    TimeSVDpp();
     virtual ~TimeSVDpp();
     void run_sgd();
     double find_error(int epoch);
@@ -30,6 +30,8 @@ private:
     double lrMovieBias;
     double lrUserBins;
     double lrMovieBins;
+    double lrUserBinBias;
+    double lrMovieBinBias;
     double lambdaUser;
     double lambdaMovie;
     double lambdaAlpha;
@@ -37,6 +39,8 @@ private:
     double lambdaMovieBias;
     double lambdaUserBins;
     double lambdaMovieBins;
+    double lambdaUserBinBias;
+    double lambdaMovieBinBias;
     double global_mean;
     std::vector<double> user_vec;
     std::vector<double> movie_vec;
@@ -65,6 +69,7 @@ private:
     double ***movie_bias_bins;
     double ***user_bias_bins;
     double estimateRating(int user, int movie, int date);
+    double getParams(double p1, double p2, double p3, double p4, double p5, double p6, double p7, int user, int movie);
     int dateToBin(int date);
     int dateToUserBin(int date);
     int nbins;

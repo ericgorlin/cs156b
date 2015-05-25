@@ -34,6 +34,7 @@ public:
     set<int> *getMoviesPerUser();
     set<int> *getDatesPerUser();
     std::vector<double> getNorms();
+    std::vector<double> getMovieNum();
     int getMinDate();
     int getMaxDate();
 

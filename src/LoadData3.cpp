@@ -14,7 +14,8 @@ LoadData3::LoadData3()
     if (testingOnProbe)
         n_datapoints = 1374739;
     else
-        n_datapoints = 98291669;
+        n_datapoints = 99666408;
+        //n_datapoints = 98291669;
     // Training set has 98291669 values
     data = 0;
     data = new double*[4];
@@ -36,7 +37,7 @@ LoadData3::LoadData3()
     if (testingOnProbe) {
         filename = "../src/um/probe.dta";
     } else {
-        filename = "../src/um/train.dta";
+        filename = "../src/um/trainprobe.dta";
     }
     ifstream myfile(filename.c_str());
 
@@ -220,7 +221,7 @@ std::vector<double> LoadData3::getNorms()
     std::vector<double> norms;
 
     for (int i = 0; i < n_users; i++) {
-        norms.push_back(pow(movies_per_user[i].size(), -0.5));
+        norms.push_back(1 / sqrt(movies_per_user[i].size()));
     }
     return norms;
 }
