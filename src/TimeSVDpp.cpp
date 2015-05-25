@@ -5,24 +5,44 @@
 #include <fstream>
 #include <iostream>
 #include <random>
-#define LF 250
-#define LR_USER .008
-#define LR_MOVIE .008
+#define LF 150
+#define LR_USER .0065
+#define LR_MOVIE .0065
 #define LR_USER_BIAS .012
 #define LR_MOVIE_BIAS .012
 #define LR_USER_BINS .006
 #define LR_MOVIE_BINS .006
-#define LR_USER_BIAS_BINS .0065
-#define LR_MOVIE_BIAS_BINS .0065
+#define LR_USER_BIAS_BINS .006
+#define LR_MOVIE_BIAS_BINS .006
 #define LAMBDA_USER .012
 #define LAMBDA_MOVIE .012
 #define LAMBDA_USER_BIAS .012
 #define LAMBDA_MOVIE_BIAS .012
-#define LAMBDA_USER_BINS 1
-#define LAMBDA_MOVIE_BINS 1
+#define LAMBDA_USER_BINS .012
+#define LAMBDA_MOVIE_BINS .012
 #define LAMBDA_USER_BIAS_BINS .5
 #define LAMBDA_MOVIE_BIAS_BINS .5
 #define LAMBDA_Y .024
+/*
+#define LF 150
+#define LR_USER .01
+#define LR_MOVIE .01
+#define LR_USER_BIAS .012
+#define LR_MOVIE_BIAS .012
+#define LR_USER_BINS .006
+#define LR_MOVIE_BINS .006
+#define LR_USER_BIAS_BINS .006
+#define LR_MOVIE_BIAS_BINS .006
+#define LAMBDA_USER .012
+#define LAMBDA_MOVIE .012
+#define LAMBDA_USER_BIAS .012
+#define LAMBDA_MOVIE_BIAS .012
+#define LAMBDA_USER_BINS .012
+#define LAMBDA_MOVIE_BINS .012
+#define LAMBDA_USER_BIAS_BINS .5
+#define LAMBDA_MOVIE_BIAS_BINS .5
+#define LAMBDA_Y .024
+*/
 /*
 #define LF 100
 #define LR_USER .012
@@ -45,7 +65,7 @@
 */
 
 /*
-#define LF 100
+#define LF 250
 #define LR_USER .008
 #define LR_MOVIE .008
 #define LR_USER_BIAS .012
@@ -62,10 +82,10 @@
 #define LAMBDA_MOVIE_BINS 1
 #define LAMBDA_USER_BIAS_BINS .5
 #define LAMBDA_MOVIE_BIAS_BINS .5
-#define LAMBDA_Y .024
-*/ //.90169
+#define LAMBDA_Y .024*/
+ //.90169
 // 100 userbins: 7
-// 250 lf: 12 epochs 0.89977
+// 250 lf: 12 epochs 0.89977           0.89097
 // lr .015    .90471
 
 int main() {
@@ -86,8 +106,8 @@ TimeSVDpp::TimeSVDpp()
     nbins = 30;
     nuserbins = 100;
     bool testingOnProbe = false; // change this in LoadData3.cpp as well
-    outfile = "TimeSVDpp_results8probe.txt";
-    outfileProbe = "TimeSVDpp_probe8probe.txt";
+    outfile = "TimeSVDpp_results10.txt";
+    outfileProbe = "TimeSVDpp_probe10.txt";
 
 
     // Set the number of latent factors, users, and movies
@@ -96,9 +116,10 @@ TimeSVDpp::TimeSVDpp()
     n_movies = 17770;
     if (testingOnProbe)
         n_datapoints = 1374739;
-    else
-        n_datapoints = 99666408;
-        //n_datapoints = 98291669;
+    else {
+        //n_datapoints = 99666408;
+        n_datapoints = 98291669;
+    }
 
     latentFactors = LF;
     lrUser = LR_USER;
@@ -358,7 +379,7 @@ void TimeSVDpp::run_sgd()
     for (int i = 0; i < latentFactors; i++)
         tempSumY[i] = 0.0;
 
-    for (unsigned int epoch = 1; epoch < 13; epoch++) {
+    for (unsigned int epoch = 1; epoch < 30; epoch++) {
 
         std::cout << "New epoch " << epoch << std::endl;
 
@@ -408,7 +429,6 @@ void TimeSVDpp::run_sgd()
                 //std::cout << userDate << std::endl;
                 double oldUserVal = u[user][k];
                 double oldMovieVal = v[movie][k];
-                //double oldMovieBinVal = movie_bias_bins[k][movie][movieDate];
                 //double oldMovieBinVal = movie_bias_bins[k][movie][movieDate];
                 //double oldUserBinVal = user_bias_bins[k][user][userDate];
                 //std::cout << "HI" << std::endl;
@@ -472,7 +492,8 @@ void TimeSVDpp::run_sgd()
         new_error = find_error(epoch);
         std::cout << "fuck" << std::endl;
 
-        create_file();
+        create_file(epoch);
+        create_probe_file(epoch);
 
         // If there's no decrease in error, stop.
         std::cout << "RMSE: " << new_error << std::endl;
@@ -497,8 +518,8 @@ void TimeSVDpp::run_sgd()
     }
 
     delete[] tempSumY;
-    create_file();
-    create_probe_file();
+    create_file(50);
+    create_probe_file(50);
 
     cout << ((double)clock() - begin) / CLOCKS_PER_SEC / 60. << " minutes to learn" << endl;
 
@@ -533,17 +554,17 @@ double TimeSVDpp::find_error(int epoch) {
     }
 
     // Scale by the number of reviews
-    return pow(error / 1374739, 0.5);
+    return sqrt(error / 1374739);
 
 
 }
 
 // Create an output file using the u and v matrices we found and the qual
 // data
-void TimeSVDpp::create_file()
+void TimeSVDpp::create_file(int epoch)
 {
     ofstream myfile1;
-    myfile1.open(outfile);
+    myfile1.open(outfile + std::to_string(epoch));
     double **qual = 0;
     qual = new double *[3];
     qual[0] = new double[2749898];
@@ -581,10 +602,10 @@ double TimeSVDpp:getParams(double p1, double p2, double p3, double p4, double p5
 
 // Create an output file using the u and v matrices we found and the qual
 // data
-void TimeSVDpp::create_probe_file()
+void TimeSVDpp::create_probe_file(int epoch)
 {
     ofstream myfile1;
-    myfile1.open(outfileProbe);
+    myfile1.open(outfileProbe + std::to_string(epoch));
     cout << "Creating output file" << endl;
     int c = 0;
 
@@ -593,7 +614,7 @@ for (unsigned int i = 0; i < 1374739; ++i)
 {
     int user = probe[0][i] - 1;
     int movie = probe[1][i] - 1;
-    int date = probe[2][i];
+    int date = probe[3][i];
 
     double predicted = TimeSVDpp::estimateRating(user, movie, date);
 

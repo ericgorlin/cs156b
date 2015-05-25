@@ -13,9 +13,10 @@ LoadData3::LoadData3()
     n_movies = 17770;
     if (testingOnProbe)
         n_datapoints = 1374739;
-    else
-        n_datapoints = 99666408;
-        //n_datapoints = 98291669;
+    else {
+        //n_datapoints = 99666408;
+        n_datapoints = 98291669;
+    }
     // Training set has 98291669 values
     data = 0;
     data = new double*[4];
@@ -37,7 +38,7 @@ LoadData3::LoadData3()
     if (testingOnProbe) {
         filename = "../src/um/probe.dta";
     } else {
-        filename = "../src/um/trainprobe.dta";
+        filename = "../src/um/train.dta";
     }
     ifstream myfile(filename.c_str());
 

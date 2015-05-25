@@ -79,8 +79,8 @@ private:
     int UserRange(int date);
 
 
-    void create_file();
-    void create_probe_file();
+    void create_file(int epoch);
+    void create_probe_file(int epoch);
 };
 
 #endif // SVD_H
