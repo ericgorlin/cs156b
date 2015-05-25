@@ -20,7 +20,8 @@ LoadData2::LoadData2()
     data = 0;
     data = new double*[3];
     for (unsigned int i = 0; i < 3; i++)
-        data[i] = new double[98291669];
+        //data[i] = new double[98291669];
+        data[i] = new double[1374739];
 
     //usersOfMovies.resize(17770);//, std::vector<unsigned int>);
     //moviesOfUsers.resize(458293);//, std::vector<unsigned int>);
@@ -36,9 +37,9 @@ LoadData2::LoadData2()
     // Open the file
     string line;
     //ifstream myfile("../src/um/train.dta");
-    ifstream myfile("src/um/train.dta");
+    //ifstream myfile("src/um/train.dta");
     //ifstream myfile("um/all.dta");
-    //ifstream myfile("um/shortall.dta");
+    ifstream myfile("src/um/probe.dta");
     std::cout << myfile.is_open() << " open" << std::endl;
     int c = 0;
     if (myfile.is_open())
@@ -62,29 +63,30 @@ LoadData2::LoadData2()
             sumRatings += rating;
             vector<double> userArr;
             vector<double> movieArr;
-            // std::vector<int> moviesOfUserMap; // not needed - file already written
-            // std::vector<int> usersOfMovieMap; // not needed anymore
+            std::vector<int> moviesOfUserMap; // not needed - file already written
+            std::vector<int> usersOfMovieMap; // not needed anymore
 
-            if (userMap.count(userIdx) > 0)
+
+            if (moviesOfUsers.count(userIdx) > 0)
             {
-                userArr = userMap[userIdx];
-                //moviesOfUserMap = moviesOfUsers[userIdx];
+                //userArr = userMap[userIdx];
+                moviesOfUserMap = moviesOfUsers[userIdx];
             }
             else
             {
                 userArr = {0, 0, 0};
             }
 
-            if (movieMap.count(movieIdx) > 0)
+            if (usersOfMovies.count(movieIdx) > 0)
             {
-                movieArr = movieMap[movieIdx];
-                //usersOfMovieMap = usersOfMovies[movieIdx];
+                //movieArr = movieMap[movieIdx];
+                usersOfMovieMap = usersOfMovies[movieIdx];
             }
             else
             {
                 movieArr = {0, 0, 0};
             }
-
+            /*
             double uN = userArr[0] + 1;
             double uM = userArr[1] + (rating - userArr[1]) / uN;
             double uS = userArr[2] + (rating - userArr[1]) * (rating - uM);
@@ -94,20 +96,21 @@ LoadData2::LoadData2()
             double mM = movieArr[1] + (rating - movieArr[1]) / mN;
             double mS = movieArr[2] + (rating - movieArr[1]) * (rating - mM);
             vector<double> newMovie = {mN, mM, mS};
+            */
 
             data[0][c] = userIdx;
             data[1][c] = movieIdx;
             data[2][c] = rating;
 
-            // moviesOfUserMap.push_back(movieIdx);
-            //moviesOfUserMap.push_back(rating);
-            //usersOfMovieMap.push_back(userIdx);
-            //usersOfMovieMap.push_back(rating);
+            moviesOfUserMap.push_back(movieIdx);
+            moviesOfUserMap.push_back(rating);
+            usersOfMovieMap.push_back(userIdx);
+            usersOfMovieMap.push_back(rating);
 
-            userMap[userIdx] = newUser;
-            movieMap[movieIdx] = newMovie;
-            //usersOfMovies[movieIdx] = usersOfMovieMap;
-            //moviesOfUsers[userIdx] = moviesOfUserMap;
+            //userMap[userIdx] = newUser;
+            //movieMap[movieIdx] = newMovie;
+            usersOfMovies[movieIdx] = usersOfMovieMap;
+            moviesOfUsers[userIdx] = moviesOfUserMap;
 
             c += 1;
 
@@ -117,17 +120,17 @@ LoadData2::LoadData2()
 
         }
         std::cout << c << std::endl;
-        std::cout << userMap.size() << std::endl;
+        //std::cout << userMap.size() << std::endl;
     }
 
     // Create the sparse matrix
     //sp_data = arma::sp_mat(locations, arma::vec(ratings));
 
     // Files below already written
-    /*
+
     std::cout << "done with loading; writing to file now" << std::endl;
     ofstream outfile;
-    outfile.open("src/usersOfMovies.txt");
+    outfile.open("src/usersOfMoviesProbe.txt");
     for (auto i : usersOfMovies)
     {
         //std::unordered_map<unsigned int, unsigned int> userRatingsMap = i.second;
@@ -144,7 +147,7 @@ LoadData2::LoadData2()
     outfile.close();
     std::cout << "wrote first file, onto second one" << std::endl;
     ofstream outfile2;
-    outfile2.open("src/moviesOfUsers.txt");
+    outfile2.open("src/moviesOfUsersProbe.txt");
     for (auto i : moviesOfUsers)
     {
         //std::unordered_map<unsigned int, unsigned int> movieRatingsMap = i.second;
@@ -159,7 +162,7 @@ LoadData2::LoadData2()
     }
     outfile2.close();
     std::cout << "wrote second file" << std::endl;
-    */
+
 }
 
 LoadData2::~LoadData2()

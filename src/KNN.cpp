@@ -1,16 +1,18 @@
 #include "KNN.h"
 #include "LoadData2.h"
 #include <typeinfo>
-KNN::KNN()
+KNN::KNN(bool addProbe)
 {
     std::cout << "in KNN" << std::endl;
-    l = new LoadData2();
+    //l = new LoadData2();
     //data = l->loadRatingsVector();
     //sp_data = l->loadSparseData();
 
     std::string line;
+    //movies_per_user = new std::vector<unsigned int>[458293];
     std::ifstream myfile("src/moviesOfUsers.txt");
     std::cout << myfile.is_open() << " opened moviesOfUsers" << std::endl;
+
     int c = 0;
     if (myfile.is_open())
     {
@@ -22,6 +24,8 @@ KNN::KNN()
             int rating;
             //std::vector<unsigned int> vec;
             //std::vector<unsigned int> vecInner;
+            //if (moviesRatedByUser.count(key) > 0)
+            //    vecInner = moviesRatedByUser[key];
             std::unordered_map<unsigned int, unsigned int> uMap;
             uMap.clear();
             iss >> key;
@@ -33,8 +37,13 @@ KNN::KNN()
                 //vecInner.push_back(rating);
                 //vec.push_back(vecInner);
                 uMap[number] = rating;
+                //movies_per_user[key - 1].push_back(number);
+                //ratingMap[static_cast<unsigned long long>(key) * 1000000 + static_cast<unsigned long long>(number)] = rating;
+                //ratingMap[std::to_string(key) + "-" + std::to_string(number)] = rating;
             }
             moviesOfUsers[key] = uMap;
+            //moviesRatedByUser[key] = vecInner;
+
             if (c % 10000 == 0)
                 std::cout << c << std::endl;
             c++;
@@ -42,10 +51,59 @@ KNN::KNN()
     }
     myfile.close();
     std::cout << c << std::endl;
-    std::cout << "done with file read" << std::endl;
-    std::cout << moviesOfUsers.size() << std::endl;
-    std::unordered_map<unsigned int, unsigned int> vec2 = moviesOfUsers[458032];
-    std::cout << vec2.size() << std::endl;
+    std::cout << "done with file read 1" << std::endl;
+    //std::cout << moviesOfUsers.size() << std::endl;
+    //std::unordered_map<unsigned int, unsigned int> vec2 = moviesOfUsers[3];
+    //std::cout << vec2.size() << std::endl;
+
+    if (addProbe)
+    {
+        std::ifstream myfile3("src/moviesOfUsersProbe.txt");
+        std::string line3;
+        std::cout << myfile3.is_open() << " opened moviesOfUsersProbe" << std::endl;
+        c = 0;
+        if (myfile3.is_open())
+        {
+            while (getline(myfile3, line3))
+            {
+                std::istringstream iss(line3);
+                int key;
+                int number;
+                int rating;
+                //std::vector<unsigned int> vec;
+                //std::vector<unsigned int> vecInner;
+                //if (moviesRatedByUser.count(key) > 0)
+                //    vecInner = moviesRatedByUser[key];
+                iss >> key;
+                std::unordered_map<unsigned int, unsigned int> uMap = moviesOfUsers[key];
+                while (iss >> number)
+                {
+                    iss >> rating;
+                    //vecInner.clear();
+                    //vecInner.push_back(number);
+                    //vecInner.push_back(rating);
+                    //vec.push_back(vecInner);
+                    //movies_per_user[key - 1].push_back(number);
+                    uMap[number] = rating;
+                    //ratingMap[static_cast<unsigned long long>(key) * 1000000 + static_cast<unsigned long long>(number)] = rating;
+                    //ratingMap[std::to_string(key) + "-" + std::to_string(number)] = rating;
+                }
+                moviesOfUsers[key] = uMap;
+                //moviesRatedByUser[key] = vecInner;
+                if (c % 10000 == 0)
+                    std::cout << c << std::endl;
+                c++;
+            }
+        }
+        myfile3.close();
+        std::cout << c << std::endl;
+        std::cout << "done with file read 2" << std::endl;
+        //std::cout << ratingMap[458293 * 1000000 + 47] << std::endl;
+        //std::cout << ratingMap.size() << std::endl;
+        //std::cout << moviesOfUsers.size() << std::endl;
+        //vec2 = moviesOfUsers[3];
+        //std::cout << vec2.size() << std::endl;
+    }
 
     std::string line2;
     std::ifstream myfile2("src/usersOfMovies.txt");
@@ -56,13 +114,14 @@ KNN::KNN()
         while (getline(myfile2, line2))
         {
             std::istringstream iss2(line2);
-            int key2;
+            unsigned int key2;
             unsigned int number2;
             unsigned int rating2;
             //std::vector<unsigned int> vec2;
             //std::vector<unsigned int> vec2Inner;
             std::unordered_map<unsigned int, unsigned int> mMap;
             mMap.clear();
+            std::vector<unsigned int> ratingsDistribution = {0, 0, 0, 0, 0};
             iss2 >> key2;
             while (iss2 >> number2)
             {
@@ -71,9 +130,11 @@ KNN::KNN()
                 //vec2Inner.push_back(number2);
                 //vec2Inner.push_back(rating2);
                 //vec2.push_back(vec2Inner);
-                mMap[number2] = rating2;
+                //mMap[number2] = rating2;
+                ratingsDistribution[rating2 - 1]++;
             }
-            usersOfMovies[key2] = mMap;
+            //usersOfMovies[key2] = mMap;
+            movieRatings[key2] = ratingsDistribution;
             if (c % 1000 == 0)
                 std::cout << c << std::endl;
             c++;
@@ -81,10 +142,59 @@ KNN::KNN()
     }
     myfile2.close();
     std::cout << c << std::endl;
-    std::cout << "done with file read" << std::endl;
-    std::cout << usersOfMovies.size() << std::endl;
-    std::unordered_map<unsigned int, unsigned int> vec3 = usersOfMovies[1];
-    std::cout << vec3.size() << std::endl;
+    std::cout << "done with file read 3" << std::endl;
+    //std::cout << movieRatings.size() << std::endl;
+    //std::vector<unsigned int> vec3 = movieRatings[3];
+    //std::cout << vec3[0] + vec3[1] + vec3[2] + vec3[3] + vec3[4] << std::endl;
+
+    if (addProbe)
+    {
+        std::string line4;
+        std::ifstream myfile4("src/usersOfMoviesProbe.txt");
+        std::cout << myfile4.is_open() << " open" << std::endl;
+        c = 0;
+        if (myfile4.is_open())
+        {
+            while (getline(myfile4, line4))
+            {
+                std::istringstream iss2(line4);
+                unsigned int key2;
+                unsigned int number2;
+                unsigned int rating2;
+                //std::vector<unsigned int> vec2;
+                //std::vector<unsigned int> vec2Inner;
+                //std::unordered_map<unsigned int, unsigned int> mMap;
+                //mMap.clear();
+                iss2 >> key2;
+                std::vector<unsigned int> ratingsDistribution = movieRatings[key2];
+                while (iss2 >> number2)
+                {
+                    iss2 >> rating2;
+                    //vec2Inner.clear();
+                    //vec2Inner.push_back(number2);
+                    //vec2Inner.push_back(rating2);
+                    //vec2.push_back(vec2Inner);
+                    //mMap[number2] = rating2;
+                    ratingsDistribution[rating2 - 1]++;
+                }
+                //usersOfMovies[key2] = mMap;
+                movieRatings[key2] = ratingsDistribution;
+                if (c % 1000 == 0)
+                    std::cout << c << std::endl;
+                c++;
+            }
+        }
+        myfile4.close();
+        std::cout << c << std::endl;
+        std::cout << "done with file read 4" << std::endl;
+        //std::cout << movieRatings.size() << std::endl;
+        //vec3 = movieRatings[3];
+        //std::cout << vec3[0] + vec3[1] + vec3[2] + vec3[3] + vec3[4] << std::endl;
+
+        //std::cout << movieRatings.size() << std::endl;
+        //std::unordered_map<unsigned int, unsigned int> vec3 = usersOfMovies[1];
+        //std::cout << vec3.size() << std::endl;
+    }
     std::cout << "loaded knn data" << std::endl;
 }
 
@@ -96,6 +206,8 @@ KNN::KNN(double** m)
 KNN::~KNN()
 {
     delete l;
+    //delete[] movies_per_user;
+
 }
 
 // Accessor for LoadData instance
@@ -109,6 +221,8 @@ unsigned int KNN::getRating(unsigned int user, unsigned int movie)
     //std::unordered_map<unsigned int, unsigned int> moviesOfUser = moviesOfUsers[user];
     //return moviesOfUser[movie];
     return moviesOfUsers[user][movie];
+    //return ratingMap[static_cast<unsigned long long>(user) * 1000000 + static_cast<unsigned long long>(movie)];
+    //return ratingMap[std::to_string(user) + "-" + std::to_string(movie)];
 }
 
 /*
@@ -191,28 +305,23 @@ std::vector<double> KNN::normalizeMovie(unsigned int movie)
 // Returns a vector of movie indices that the user rated
 std::vector<unsigned int> KNN::getMoviesOfUser(unsigned int user)
 {
-    //LoadData2 *l2 = getLD();
-    //arma::sp_mat sp_data = l2->loadSparseData();
+    //return movies_per_user[user - 1];
+
     std::vector<unsigned int> moviesVec;
-    //std::unordered_map<unsigned int, unsigned int> moviesOfUser = moviesOfUsers[user];
     for (auto kv : moviesOfUsers[user])
     {
-            //unsigned int movie = kv.first;
             moviesVec.push_back(kv.first);
     }
     return moviesVec;
+
 }
 
 // Returns a vector of user indices that rated the movie
 std::vector<unsigned int> KNN::getUsersOfMovie(unsigned int movie)
 {
-    //LoadData2 *l2 = getLD();
-    //arma::sp_mat sp_data = l2->loadSparseData();
     std::vector<unsigned int> usersVec;
-    //std::unordered_map<unsigned int, unsigned int> usersOfMovie = usersOfMovies[movie];
     for (auto kv : usersOfMovies[movie])
     {
-            //unsigned int user = kv.first;
             usersVec.push_back(kv.first);
     }
     return usersVec;
@@ -239,23 +348,23 @@ unsigned short KNN::calculatePearson(PearsonIntermediate pi)
 
 std::vector<unsigned short> KNN::getCorrelations(unsigned int movie)
 {
-    //clock_t begin1 = clock();
+    clock_t begin1 = clock();
     //PearsonIntermediate *corrArr = new PearsonIntermediate[17770];
     PearsonIntermediate corrArr[17770];
     std::vector<unsigned short> allCorrelations;
     allCorrelations.reserve(17770);
-    //clock_t begin2 = clock();
-    //double elapsed_min1 = double(begin2 - begin1) / CLOCKS_PER_SEC;
-    //std::cout << "time to load data " << elapsed_min1 / CLOCKS_PER_SEC << std::endl;
-    //clock_t begin21 = clock();
-    //std::vector<unsigned int> userVec = getUsersOfMovie(movie); // all users who rated this movie
-    //clock_t begin22 = clock();
-    //double elapsed_min2 = double(begin22 - begin21) / CLOCKS_PER_SEC;
-    //std::cout << "time to get users of movie " << elapsed_min2 << std::endl;
-    //double totalGetMoviesTime = 0;
-    //double totalInnerLoopMinusSparse = 0;
-    //double totalGetMovie = 0;
-    //double totalGetOther = 0;
+    clock_t begin2 = clock();
+    double elapsed_min1 = double(begin2 - begin1) / CLOCKS_PER_SEC;
+    std::cout << "time to load data " << elapsed_min1 / CLOCKS_PER_SEC << std::endl;
+    clock_t begin21 = clock();
+    std::vector<unsigned int> userVec = getUsersOfMovie(movie); // all users who rated this movie
+    clock_t begin22 = clock();
+    double elapsed_min2 = double(begin22 - begin21) / CLOCKS_PER_SEC;
+    std::cout << "time to get users of movie " << elapsed_min2 << std::endl;
+    double totalGetRatingsTime = 0;
+    double totalPI = 0;
+    //double totalGetMovies = 0;
+    double totalGetPI = 0;
     for (auto & userIdx : getUsersOfMovie(movie))
     {
         //unsigned int userIdx = *it;
@@ -267,11 +376,13 @@ std::vector<unsigned short> KNN::getCorrelations(unsigned int movie)
         for (auto & otherMovie : getMoviesOfUser(userIdx)) //std::vector<unsigned int>::iterator it2 = movieVec.begin(); it2 != movieVec.end(); ++it2)
         {
             // update the PearsonIntermediate struct
-            unsigned int movieRating = getRating(userIdx, movie);
-            //clock_t begin333 = clock();
+            clock_t begin333 = clock();
+            unsigned int movieRating = getRating(userIdx, movie);            ;
             unsigned int otherMovieRating = getRating(userIdx, otherMovie);
-            //clock_t begin3333 = clock();
+            clock_t begin3333 = clock();
+
             PearsonIntermediate currentPI = corrArr[otherMovie - 1];
+            clock_t begin4 = clock();
             PearsonIntermediate newPI;
             newPI.x = currentPI.x + movieRating;
             newPI.y = currentPI.y + otherMovieRating;
@@ -279,37 +390,41 @@ std::vector<unsigned short> KNN::getCorrelations(unsigned int movie)
             newPI.xx = currentPI.xx + movieRating * movieRating;
             newPI.yy = currentPI.yy + otherMovieRating * otherMovieRating;
             newPI.cnt = currentPI.cnt + 1;
-
             corrArr[otherMovie - 1] = newPI;
+            clock_t begin5 = clock();
             //clock_t begin4 = clock();
-            //double elapsed_min3 = double(begin4 - begin3333) / CLOCKS_PER_SEC;
-            //double elapsed_min33 = double(begin3333 - begin333) / CLOCKS_PER_SEC;
-            //double elapsed_min333 = double(begin333 - begin3) / CLOCKS_PER_SEC;
-            //totalInnerLoopMinusSparse += elapsed_min3;
-            //totalGetMovie += elapsed_min333;
-            //totalGetOther += elapsed_min33;
+            double elapsed_min4 = double(begin4 - begin3333) / CLOCKS_PER_SEC;
+            double elapsed_min3 = double(begin5 - begin4) / CLOCKS_PER_SEC;
+            double elapsed_min33 = double(begin3333 - begin333) / CLOCKS_PER_SEC;
+            //double elapsed_min333 = double(begin333 - begin221) / CLOCKS_PER_SEC;
+            totalPI += elapsed_min3;
+            //totalGetMovies += elapsed_min333;
+            totalGetPI += elapsed_min4;
+            totalGetRatingsTime += elapsed_min33;
+            //begin221 = clock();
         }
 
     }
     //clock_t end1 = clock();
     //double elapsed_total = double(end1 - begin1) / CLOCKS_PER_SEC;
-    //std::cout << "total movie rating time " << totalGetMovie << std::endl;
-    //std::cout << "total other movie rating time " << totalGetOther << std::endl;
-    //std::cout << "inner loop without sparse took " << totalInnerLoopMinusSparse << std::endl;
+    std::cout << "total get ratings time " << totalGetRatingsTime << std::endl;
+    std::cout << "total get PI from array time " << totalGetPI << std::endl;
+    std::cout << "total make new PI" << totalPI << std::endl;
     //std::cout << "total time to make structs " << elapsed_total << std::endl;
-    //clock_t begin5 = clock();
+    clock_t begin55 = clock();
     for (unsigned int i = 0; i < 17770; ++i)
     {
         //uint8_t corr = ;
         allCorrelations[i] = calculatePearson(corrArr[i]);
     }
-    //clock_t end2 = clock();
-    //double elapsed_min3 = double(end2 - begin5) / CLOCKS_PER_SEC;
-    //std::cout << "seconds for correlations loop: " << elapsed_min3 << std::endl;
+    clock_t end2 = clock();
+    double elapsed_min0 = double(end2 - begin55) / CLOCKS_PER_SEC;
+    std::cout << "seconds for correlations loop: " << elapsed_min0 << std::endl;
 
     return allCorrelations;
 }
 
+/*
 int main()
 {
     KNN k = KNN();
@@ -329,6 +444,7 @@ int main()
     std::cout << (static_cast<double> (corrArr1[0])) / 65535.0 << " " << (static_cast<double> (corrArr1[1])) / 65535.0 << " " << (static_cast<double> (corrArr1[2])) / 65535.0 << std::endl;
     std::cout << (static_cast<double> (corrArr2[0])) / 65535.0 << " " << (static_cast<double> (corrArr2[1])) / 65535.0 << " " << (static_cast<double> (corrArr2[2])) / 65535.0 << std::endl;
     std::cout << "writing to file now" << std::endl;
+    /*
     ofstream outfile;
     outfile.open("src/movieCorrelationMatrix5.txt");
     for (unsigned int i = 0; i < 17770; ++i)
@@ -345,8 +461,8 @@ int main()
             std::cout << i << std::endl;
         }
     }
-    outfile.close();
-
+    outfile.close();*/
+/*
     return 0;
 }
-
+*/

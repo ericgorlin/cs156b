@@ -5,13 +5,15 @@
 #include <fstream>
 #include <unordered_map>
 #include <math.h>
+#include <string>
+#include <set>
 #define ARMA_64BIT_WORD
 class LoadData2;
 
 class KNN
 {
     public:
-        KNN();
+        KNN(bool addProbe);
 
         KNN(double** m);
         struct PearsonIntermediate
@@ -39,8 +41,12 @@ class KNN
         double getGlobalEffects(unsigned int user, unsigned int movie);
         std::unordered_map<int, std::unordered_map<unsigned int, unsigned int>> usersOfMovies; // {movie1: {user1: rating1, ... }, movie2: {}, ...}
         std::unordered_map<int, std::unordered_map<unsigned int, unsigned int>> moviesOfUsers; // {user1: {movie1: rating1, ... }, user2: {}, ...}
+        //std::unordered_map<unsigned int, std::vector<unsigned int>> moviesRatedByUser;
+        //std::vector<unsigned int> *movies_per_user;
         //std::vector<double> normalizeUser(unsigned int user);
         //std::vector<double> normalizeMovie(unsigned int movie);
+        //std::unordered_map<unsigned long long, unsigned int> ratingMap;
+        std::unordered_map<int, std::vector<unsigned int>> movieRatings;
         std::vector<unsigned int> getMoviesOfUser(unsigned int user);
         std::vector<unsigned int> getUsersOfMovie(unsigned int movie);
         unsigned short calculatePearson(PearsonIntermediate pi);
